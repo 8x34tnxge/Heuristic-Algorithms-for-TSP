@@ -1,0 +1,72 @@
+cityInfo: [
+  { id: 1,
+    cityCoord: [
+    x: 16.47,
+    y: 96.1
+  ]},
+  {  id: 2,
+  cityCoord: [
+    x: 16.47,
+    y: 94.44
+  ]},
+  {  id: 3,
+  cityCoord: [
+    x: 20.09,
+    y: 92.54
+  ]},
+  {  id: 4,
+  cityCoord: [
+  x: 22.39,
+    y: 93.37
+  ]},
+  {  id: 5,
+  cityCoord: [
+    x: 25.23,
+    y: 97.24
+  ]},
+  {  id: 6,
+  cityCoord: [
+    x: 22,
+    y: 96.05
+  ]},
+  {  id: 7,
+  cityCoord: [
+    x: 20.47,
+    y: 97.02
+  ]},
+  {  id: 8,
+  cityCoord: [
+    x: 17.2,
+    y: 96.29
+  ]},
+  {  id: 9,
+  cityCoord: [
+    x: 16.3,
+    y: 97.38
+  ]},
+  {  id: 10,
+  cityCoord: [
+    x: 14.05,
+    y: 98.12
+  ]},
+  {  id: 11,
+  cityCoord: [
+    x: 16.53,
+    y: 97.38
+  ]},
+  {  id: 12,
+  cityCoord: [
+    x: 21.52,
+    y: 95.59
+  ]},
+  {  id: 13,
+  cityCoord: [
+    x: 19.41,
+    y: 97.13
+  ]},
+  {  id: 14,
+  cityCoord: [
+    x: 20.09,
+    y: 92.55
+  ]}
+]
