@@ -1,35 +1,82 @@
 import random
-from typing import Any, NoReturn
+from typing import Any, List, Callable
 
 import numpy as np
 from tqdm import tqdm
 from utils.dataloader import CityDataLoader
+from utils.base import DataLoader
 from utils.tsp import distFunc, initSolution, twoOpt
 
 from algCore.base import Base
-from algCore.param import SA_Param
+from algCore.param import SA_Param, AdaptiveSA_Param
 
 
 class SimulatedAnnealing(Base):
-    def __init__(self, params: SA_Param) -> NoReturn:
+    """
+    Simulated Annealing Algorithm
+    """
+    def __init__(self, params: SA_Param) -> None:
+        """initialize SA algorithm
+
+        Args:
+            params (SA_Param): the parameter object for Simulated Annealing algorithm
+        """
         self.bestValueWatcher = []
         self.params: SA_Param = params
         super().__init__()
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: float) -> None:
+        """the method to set value watcher attribute
+
+        Args:
+            name (str): watcher name
+            value (float): the notable value needed to be recorded
+        """
         if name == 'bestValue':
             self.bestValueWatcher.append(value)
         super().__setattr__(name, value)
 
     def run(
         self,
-        dataLoader: CityDataLoader,
-        initSolution=initSolution,
-        distFunc=distFunc,
-        fetchNewSchedule=twoOpt,
-    ) -> NoReturn:
+        dataLoader: DataLoader,
+        initSchedule: Callable = initSolution,
+        calcValue: Callable = distFunc,
+        fetchNewSchedule: Callable = twoOpt,
+    ) -> None:
+        """the main procedure for SA
+
+        Args:
+            dataLoader (DataLoader): where you can query data from
+            initSchedule (Callable, optional): the method to init schedule. Defaults to initSolution.
+            calcValue (Callable, optional): the method to calc value from given schedule. Defaults to distFunc.
+            fetchNewSchedule (Callable, optional): the method to fetch new schedule. Defaults to twoOpt.
+
+        Raises:
+            ValueError: check whether the cool rate is in [0, 1)
+        """
+        # load params
+        temperate = self.params.initialTemperate
+        terminatedTemperate = self.params.terminatedTemperate
+        coolRate = self.params.coolRate
+        epochNum = self.params.epochNum
+
+        try:
+            assert 0 <= coolRate < 1
+        except AssertionError:
+            raise ValueError(
+                f"CoolRate must be in [0, 1). Current coolRate's value is {coolRate}"
+            )
+
         # define the util functions
-        def updateLocalSchedule(schedule, value, temperate, maximize=False):
+        def updateLocalSchedule(schedule: List, value: float, temperate: float, maximize=False) -> None:
+            """the method to update local schedule
+
+            Args:
+                schedule (List): current schedule
+                value (float): current value
+                temperate (float): current temperate
+                maximize (bool, optional): the target is whether to maximize or minimize value. Defaults to False.
+            """
             isDenied = False
             if (not maximize and value > self.localValue) or (
                 maximize and value < self.localvalue
@@ -46,7 +93,14 @@ class SimulatedAnnealing(Base):
             self.localSchedule.extend(schedule)
             self.localValue = value
 
-        def updateGlobalSchedule(schedule, value, maximize=False):
+        def updateGlobalSchedule(schedule, value, maximize=False) -> None:
+            """the method to update global schedule
+
+            Args:
+                schedule (List): current schedule
+                value (float): current value
+                maximize (bool, optional): the target is whether to maximize or minimize value. Defaults to False.
+            """
             if not maximize and value >= self.bestValue:
                 return
             if maximize and value <= self.bestValue:
@@ -55,21 +109,8 @@ class SimulatedAnnealing(Base):
             self.bestSchedule.extend(schedule)
             self.bestValue = value
 
-        # load params
-        temperate = self.params.initialTemperate
-        terminatedTemperate = self.params.terminatedTemperate
-        coolRate = self.params.coolRate
-        epochNum = self.params.epochNum
-
-        try:
-            assert 0 <= coolRate < 1
-        except AssertionError:
-            raise ValueError(
-                f"CoolRate must be in [0, 1). Current coolRate's value is {coolRate}"
-            )
-
         # main procedure
-        schedule, value = initSolution(dataLoader, distFunc)
+        schedule, value = initSchedule(dataLoader, calcValue)
 
         updateLocalSchedule(schedule, value, temperate)
         updateGlobalSchedule(schedule, value)
@@ -89,19 +130,52 @@ class SimulatedAnnealing(Base):
 
 
 class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
-    def __init__(self, params):
+    """
+    Adaptive Simulated Annealing Algorithm
+    Reference:
+    Wu, Guohua, et al. "Satellite observation scheduling with a novel adaptive simulated annealing algorithm and a dynamic task clustering strategy." Computers & Industrial Engineering 113 (2017): 576-588.
+    """
+    def __init__(self, params: AdaptiveSA_Param) -> None:
+        """the method initialize the Adaptive SA algorithm
+
+        Args:
+            params (AdaptiveSA_Param): the parameter object for the Adaptive Simulated Annealing algorithm
+        """
         super().__init__(params)
         self.cnt = 0
 
     def run(
         self,
-        dataLoader: CityDataLoader,
-        initSolution=initSolution,
-        distFunc=distFunc,
-        fetchNewSchedule=twoOpt,
-    ) -> NoReturn:
+        dataLoader: DataLoader,
+        initSchedule: Callable = initSolution,
+        calcValue: Callable = distFunc,
+        fetchNewSchedule: Callable = twoOpt,
+    ) -> None:
+        """the main procedure for Adaptive SA
+
+        Args:
+            dataLoader (DataLoader): where you can query data from
+            initSchedule (Callable, optional): the method to init schedule. Defaults to initSolution.
+            calcValue (Callable, optional): the method to calc value from given schedule. Defaults to distFunc.
+            fetchNewSchedule (Callable, optional): the method to fetch new schedule. Defaults to twoOpt.
+        """
+        # load params
+        self.cnt = 0
+        minTemperate = self.params.minTemperate
+        penalWeight = self.params.penalWeight
+        delta = self.params.delta
+        epochNum = self.params.epochNum
+
         # define the util functions
         def updateLocalSchedule(schedule, value, temperate, maximize=False):
+            """the method to update local schedule
+
+            Args:
+                schedule (List): current schedule
+                value (float): current value
+                temperate (float): current temperate
+                maximize (bool, optional): the target is whether to maximize or minimize value. Defaults to False.
+            """
             isDenied = False
             if (not maximize and value > self.localValue) or (
                 maximize and value < self.localvalue
@@ -121,6 +195,13 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
             self.localValue = value
 
         def updateGlobalSchedule(schedule, value, maximize=False):
+            """the method to update global schedule
+
+            Args:
+                schedule (List): current schedule
+                value (float): current value
+                maximize (bool, optional): the target is whether to maximize or minimize value. Defaults to False.
+            """
             if not maximize and value > self.bestValue:
                 return
             if maximize and value < self.bestValue:
@@ -129,15 +210,8 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
             self.bestSchedule.extend(schedule)
             self.bestValue = value
 
-        # load params
-        self.cnt = 0
-        minTemperate = self.params.minTemperate
-        penalWeight = self.params.penalWeight
-        delta = self.params.delta
-        epochNum = self.params.epochNum
-
         # init the first route or schedule
-        schedule, value = initSolution(dataLoader, distFunc)
+        schedule, value = initSchedule(dataLoader, calcValue)
 
         updateLocalSchedule(schedule, value, minTemperate)
         updateGlobalSchedule(schedule, value)
