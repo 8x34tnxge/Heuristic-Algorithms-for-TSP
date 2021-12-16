@@ -1,9 +1,12 @@
 import random
+from typing import Callable, List, Tuple
 
 import numpy as np
 
+from utils.base import DataLoader
 
-def initSolution(dataLoader, distFunc):
+
+def initSolution(dataLoader: DataLoader, distFunc: Callable):
     schedule = []
     for cityId, cityGeoInfo in dataLoader:
         schedule.append(cityId)
@@ -13,8 +16,38 @@ def initSolution(dataLoader, distFunc):
 
     return schedule, value
 
-def twoOpt(self, schedule, value, dataLoader, maximized=False):
-    def calcDelta(schedule, prevPos, nextPos):
+
+def twoOpt(
+    self: object,
+    schedule: List[int],
+    value: float,
+    dataLoader: DataLoader,
+    maximized: bool = False,
+) -> Tuple[List[int], float]:
+    """the 2-opt method to generate new schedule
+
+    Args:
+        self (object): the algorithm object to fetch necessary params
+        schedule (List[int]): the current schedule
+        value (float): the current value
+        dataLoader (DataLoader): where you can query the data from
+        maximized (bool, optional): whether to maximize or minimize the target value. Defaults to False.
+
+    Returns:
+        Tuple[List[int], float]: new schedule and its value respectively
+    """
+
+    def calcDelta(schedule: List[int], prevPos: int, nextPos: int) -> float:
+        """calculate the delta value between schedule before and after
+
+        Args:
+            schedule (List[int]): the current schedule
+            prevPos (int): the 2-opt fore-position
+            nextPos (int): the 2-opt post-position
+
+        Returns:
+            float: the delta value
+        """
         if prevPos == nextPos:
             return 0
         if prevPos + nextPos + 1 == len(schedule):
@@ -64,7 +97,12 @@ def twoOpt(self, schedule, value, dataLoader, maximized=False):
         )
         return delta
 
-    def getIdxViaRandom():
+    def getIdxViaRandom() -> Tuple[int, int]:
+        """randomly fetch 2 index based on random strategy
+
+        Returns:
+            Tuple[int, int]: the fore-position and the post-position respectively
+        """
         randomIdx1 = random.randint(0, len(schedule) - 1)
         randomIdx2 = random.randint(0, len(schedule) - 1)
         while randomIdx1 == randomIdx2 or randomIdx1 + randomIdx2 + 1 == len(schedule):
@@ -73,6 +111,11 @@ def twoOpt(self, schedule, value, dataLoader, maximized=False):
         return randomIdx1, randomIdx2
 
     def getIdxViaBest():
+        """fetch 2 index based on best strategy
+
+        Returns:
+            Tuple[int, int]: the fore-position and the post-position respectively
+        """
         delta = -np.inf
         bestIdx1, bestIdx2 = -1, -1
         for i in range(len(schedule) - 1):
@@ -121,11 +164,20 @@ def twoOpt(self, schedule, value, dataLoader, maximized=False):
     return newSchedule, value
 
 
-def distFunc(schedule, data):
+def distFunc(schedule: List[int], dataLoader: DataLoader) -> float:
+    """the method to calc value based on the current schedule
+
+    Args:
+        schedule (List[int]): the current schedule
+        dataLoader (DataLoader): where you can query the data from
+
+    Returns:
+        float: the target value
+    """
     dist = 0
     for i in range(len(schedule)):
-        prevGeoInfo = data[schedule[i]]
-        nextGeoInfo = data[schedule[(i + 1) % len(schedule)]]
+        prevGeoInfo = dataLoader[schedule[i]]
+        nextGeoInfo = dataLoader[schedule[(i + 1) % len(schedule)]]
 
         deltaX = prevGeoInfo.x - nextGeoInfo.x
         deltaY = prevGeoInfo.y - nextGeoInfo.y

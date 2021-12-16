@@ -7,6 +7,11 @@ from utils.base import DataLoader
 
 class CityDataLoader(DataLoader):
     def __init__(self, data: CfgNode) -> None:
+        """the data loader containing the city data
+
+        Args:
+            data (CfgNode): the city data
+        """
         coordPair = namedtuple('coordPair', ['x', 'y'])
         processedData = dict()
         for elem in data:

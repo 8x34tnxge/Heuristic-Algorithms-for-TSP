@@ -29,7 +29,7 @@ class SimulatedAnnealing(Base):
         """the method to set value watcher attribute
 
         Args:
-            name (str): watcher name
+            name (str): watcher's name
             value (float): the notable value needed to be recorded
         """
         if name == 'bestValue':
@@ -72,10 +72,10 @@ class SimulatedAnnealing(Base):
             """the method to update local schedule
 
             Args:
-                schedule (List): current schedule
-                value (float): current value
-                temperate (float): current temperate
-                maximize (bool, optional): the target is whether to maximize or minimize value. Defaults to False.
+                schedule (List): the current schedule
+                value (float): the current value
+                temperate (float): the current temperate
+                maximize (bool, optional): whether to maximize or minimize the target value. Defaults to False.
             """
             isDenied = False
             if (not maximize and value > self.localValue) or (
@@ -97,9 +97,9 @@ class SimulatedAnnealing(Base):
             """the method to update global schedule
 
             Args:
-                schedule (List): current schedule
-                value (float): current value
-                maximize (bool, optional): the target is whether to maximize or minimize value. Defaults to False.
+                schedule (List): the current schedule
+                value (float): the current value
+                maximize (bool, optional): whether to maximize or minimize the target value. Defaults to False.
             """
             if not maximize and value >= self.bestValue:
                 return
@@ -171,10 +171,10 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
             """the method to update local schedule
 
             Args:
-                schedule (List): current schedule
-                value (float): current value
-                temperate (float): current temperate
-                maximize (bool, optional): the target is whether to maximize or minimize value. Defaults to False.
+                schedule (List): the current schedule
+                value (float): the current value
+                temperate (float): the current temperate
+                maximize (bool, optional): whether to maximize or minimize the target value. Defaults to False.
             """
             isDenied = False
             if (not maximize and value > self.localValue) or (
@@ -198,9 +198,9 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
             """the method to update global schedule
 
             Args:
-                schedule (List): current schedule
-                value (float): current value
-                maximize (bool, optional): the target is whether to maximize or minimize value. Defaults to False.
+                schedule (List): the current schedule
+                value (float): the current value
+                maximize (bool, optional): whether to maximize or minimize the target value. Defaults to False.
             """
             if not maximize and value > self.bestValue:
                 return
