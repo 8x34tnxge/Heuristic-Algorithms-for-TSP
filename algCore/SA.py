@@ -1,20 +1,20 @@
 import random
-from typing import Any, List, Callable
+from typing import Any, Callable, List
 
 import numpy as np
 from tqdm import tqdm
-from utils.dataloader import CityDataLoader
 from utils.base import DataLoader
 from utils.tsp import distFunc, initSolution, twoOpt
 
 from algCore.base import Base
-from algCore.param import SA_Param, AdaptiveSA_Param
+from algCore.param import AdaptiveSA_Param, SA_Param
 
 
 class SimulatedAnnealing(Base):
     """
     Simulated Annealing Algorithm
     """
+
     def __init__(self, params: SA_Param) -> None:
         """initialize SA algorithm
 
@@ -32,7 +32,7 @@ class SimulatedAnnealing(Base):
             name (str): watcher's name
             value (float): the notable value needed to be recorded
         """
-        if name == 'bestValue':
+        if name == "bestValue":
             self.bestValueWatcher.append(value)
         super().__setattr__(name, value)
 
@@ -68,7 +68,9 @@ class SimulatedAnnealing(Base):
             )
 
         # define the util functions
-        def updateLocalSchedule(schedule: List, value: float, temperate: float, maximize=False) -> None:
+        def updateLocalSchedule(
+            schedule: List, value: float, temperate: float, maximize=False
+        ) -> None:
             """the method to update local schedule
 
             Args:
@@ -135,6 +137,7 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
     Reference:
     Wu, Guohua, et al. "Satellite observation scheduling with a novel adaptive simulated annealing algorithm and a dynamic task clustering strategy." Computers & Industrial Engineering 113 (2017): 576-588.
     """
+
     def __init__(self, params: AdaptiveSA_Param) -> None:
         """the method initialize the Adaptive SA algorithm
 

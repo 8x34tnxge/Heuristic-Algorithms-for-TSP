@@ -12,13 +12,13 @@ class CityDataLoader(DataLoader):
         Args:
             data (CfgNode): the city data
         """
-        coordPair = namedtuple('coordPair', ['x', 'y'])
+        coordPair = namedtuple("coordPair", ["x", "y"])
         processedData = dict()
         for elem in data:
-            id = elem['id']
-            x = elem['cityCoord'][0]['x']
-            y = elem['cityCoord'][1]['y']
+            id = elem["id"]
+            x = elem["cityCoord"][0]["x"]
+            y = elem["cityCoord"][1]["y"]
             processedData[id] = coordPair(x, y)
 
         super().__init__(processedData)
-    
+
