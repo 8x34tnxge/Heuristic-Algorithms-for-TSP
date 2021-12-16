@@ -31,7 +31,7 @@ def main():
         for algorithm, param in zip(algorithms, params):
             for epoch in range(eachTimes):
                 value = unitTest(
-                    algorithm, param, f"{algorithm.__name__}_{method}_{epoch}"
+                    algorithm, param, "output", f"{algorithm.__name__}_{method}_{epoch}"
                 )
                 result[f"{algorithm.__name__}_{method}"].append(value)
 
@@ -52,7 +52,7 @@ def main():
     result.to_csv(f"testResult.csv", sep="|")
 
 
-def unitTest(algorithm, param, saveFileName):
+def unitTest(algorithm, param, outputDir, outputName):
     print("Loading infomation...")
     config = getConfig()
     dataloader = CityDataLoader(config.cityInfo)
@@ -71,7 +71,7 @@ def unitTest(algorithm, param, saveFileName):
     print(f"Distance: {value}")
     # TODO visualize the result and attach detector to algorithm
     visualize(
-        schedule, dataloader, alg.bestValueWatcher, fileDir="result", fileName=saveFileName, save=True
+        schedule, dataloader, alg.bestValueWatcher, fileDir=outputDir, fileName=outputName, save=True
     )
     print("Result is saved!")
     return alg.bestValue
