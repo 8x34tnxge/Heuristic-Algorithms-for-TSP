@@ -71,7 +71,7 @@ def unitTest(algorithm, param, saveFileName):
     print(f"Distance: {value}")
     # TODO visualize the result and attach detector to algorithm
     visualize(
-        schedule, dataloader, alg.bestValueWatcher, fileName=saveFileName, save=True
+        schedule, dataloader, alg.bestValueWatcher, fileDir="result", fileName=saveFileName, save=True
     )
     print("Result is saved!")
     return alg.bestValue

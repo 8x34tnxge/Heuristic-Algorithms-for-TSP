@@ -1,7 +1,9 @@
+import os
+
 import matplotlib.pyplot as plt
 
 
-def visualize(schedule, dataLoader, valueWatcher, fileName, save=False):
+def visualize(schedule, dataLoader, valueWatcher, fileDir, fileName, save=False):
     validValue = valueWatcher[1:]
     bestValue= valueWatcher[-1]
     fig = plt.figure()
@@ -25,7 +27,10 @@ def visualize(schedule, dataLoader, valueWatcher, fileName, save=False):
         next = prev + 1
         plt.plot([dataLoader[schedule[prev]].x, dataLoader[schedule[next]].x], [dataLoader[schedule[prev]].y, dataLoader[schedule[next]].y])
 
+    if not os.path.exists(fileDir):
+        os.mkdir(fileDir)
+
     if save:
-        fig.savefig(f"./result/{fileName}")
+        fig.savefig(f"{fileDir}/{fileName}")
     else:
         plt.show()
