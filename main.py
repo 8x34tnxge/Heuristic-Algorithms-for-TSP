@@ -13,37 +13,44 @@ def main():
     eachTimes = 10
     algorithms = [SA, AdaptiveSA]
     result = defaultdict(list)
-    methods = ['random', 'best', 'mixed']
+    methods = ["random", "best", "mixed"]
 
     for method in methods:
         params = [
             SA_Param(
-                initialTemperate = (1/0.85) ** 20,
-                terminatedTemperate = 1e0,
-                coolRate = 0.85,
-                epochNum = 100,
-                method=method
+                initialTemperate=(1 / 0.85) ** 20,
+                terminatedTemperate=1e0,
+                coolRate=0.85,
+                epochNum=100,
+                method=method,
             ),
             AdaptiveSA_Param(
-                minTemperate=1,
-                penalWeight=1,
-                delta=1,
-                epochNum = 2000,
-                method=method
-            )
+                minTemperate=1, penalWeight=1, delta=1, epochNum=2000, method=method
+            ),
         ]
         for algorithm, param in zip(algorithms, params):
             for epoch in range(eachTimes):
-                value = unitTest(algorithm, param, f'{algorithm.__name__}_{method}_{epoch}')
-                result[f'{algorithm.__name__}_{method}'].append(value)
+                value = unitTest(
+                    algorithm, param, f"{algorithm.__name__}_{method}_{epoch}"
+                )
+                result[f"{algorithm.__name__}_{method}"].append(value)
 
-    result = pd.DataFrame(np.array([
-        result[f'{key.__name__}_{method}'] for key in algorithms for method in methods
-    ]), columns=[x for x in range(1, eachTimes+1)], index=[f'{key.__name__}_{method}' for key in algorithms for method in methods])
-    result['mean'] = result.mean(axis=1)
-    result['std'] = result.std(axis=1)
+    result = pd.DataFrame(
+        np.array(
+            [
+                result[f"{key.__name__}_{method}"]
+                for key in algorithms
+                for method in methods
+            ]
+        ),
+        columns=[x for x in range(1, eachTimes + 1)],
+        index=[f"{key.__name__}_{method}" for key in algorithms for method in methods],
+    )
+    result["mean"] = result.mean(axis=1)
+    result["std"] = result.std(axis=1)
     result = result.round(3)
-    result.to_csv(f'testResult.csv', sep='|')
+    result.to_csv(f"testResult.csv", sep="|")
+
 
 def unitTest(algorithm, param, saveFileName):
     print("Loading infomation...")
@@ -51,13 +58,6 @@ def unitTest(algorithm, param, saveFileName):
     dataloader = CityDataLoader(config.cityInfo)
     print("Init algorithm...")
     alg = algorithm(param)
-    # algorithm = AdaptiveSA(SA_Param(
-    #     initialTemperate = 500,
-    #     terminatedTemperate = 1e-1,
-    #     coolRate = 0.85,
-    #     epochNum = 100,
-    #     method='random'
-    # ))
     print("Begin to run the algorithm...")
     schedule, value = alg(dataloader)
     print("Running is completed!\n")
@@ -67,10 +67,12 @@ def unitTest(algorithm, param, saveFileName):
     except AssertionError:
         raise NotImplementedError("Algorithm may broken")
     print("Result:")
-    print("Route: " + '->'.join(map(str, schedule)))
+    print("Route: " + "->".join(map(str, schedule)))
     print(f"Distance: {value}")
-    #TODO visualize the result and attach detector to algorithm
-    visualize(schedule, dataloader, alg.bestValueWatcher, fileName=saveFileName, save=True)
+    # TODO visualize the result and attach detector to algorithm
+    visualize(
+        schedule, dataloader, alg.bestValueWatcher, fileName=saveFileName, save=True
+    )
     print("Result is saved!")
     return alg.bestValue
 

@@ -1,6 +1,8 @@
-from yacs.config import CfgNode
-from utils.base import DataLoader
 from collections import namedtuple
+
+from yacs.config import CfgNode
+
+from utils.base import DataLoader
 
 
 class CityDataLoader(DataLoader):

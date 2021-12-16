@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 
+
 def visualize(schedule, dataLoader, valueWatcher, fileName, save=False):
     validValue = valueWatcher[1:]
     bestValue= valueWatcher[-1]

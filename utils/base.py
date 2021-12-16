@@ -1,5 +1,6 @@
 from typing import Any, Dict, Iterator, List, Union
 
+
 class DataLoader(list):
     def __init__(self, data: Union[List[Any], Dict[Any, Any]]) -> None:
         self.data: Union[List[Any], Dict[Any, Any]] = data
