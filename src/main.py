@@ -7,6 +7,7 @@ from alglib import SA, AdaptiveSA
 from alglib.param import AdaptiveSA_Param, SA_Param
 from config import getConfig
 from utils import CityDataLoader, visualize
+from utils.tsp import intersectionRefactor
 
 
 def main():

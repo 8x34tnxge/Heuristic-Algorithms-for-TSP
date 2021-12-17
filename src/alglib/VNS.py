@@ -47,22 +47,9 @@ class VariableNeighborhoodSearch(Base):
             initSchedule (Callable, optional): the method to init schedule. Defaults to initSolution.
             calcValue (Callable, optional): the method to calc value from given schedule. Defaults to distFunc.
             fetchNewSchedule (Callable, optional): the method to fetch new schedule. Defaults to twoOpt.
-
-        Raises:
-            ValueError: check whether the cool rate is in [0, 1)
         """
         # load params
-        temperate = self.params.initialTemperate
-        terminatedTemperate = self.params.terminatedTemperate
-        coolRate = self.params.coolRate
         epochNum = self.params.epochNum
-
-        try:
-            assert 0 <= coolRate < 1
-        except AssertionError:
-            raise ValueError(
-                f"CoolRate must be in [0, 1). Current coolRate's value is {coolRate}"
-            )
 
         # define the util functions
         def updateLocalSchedule(
@@ -123,12 +110,12 @@ class VariableNeighborhoodSearch(Base):
             schedule, value = initSchedule(dataLoader, calcValue)
 
             updateLocalSchedule(
-                schedule, value, temperate, force=True, maximize=self.params.maximize
+                schedule, value, force=True, maximize=self.params.maximize
             )
             updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
 
             methodCnt = 0
-            while methodCnt < len(self.methods):
+            while methodCnt < len(self.params.methods):
                 fetchNewSchedule = self.params.methods[methodCnt]
                 schedule, value = fetchNewSchedule(
                     self, self.localSchedule, self.localValue, dataLoader

@@ -4,3 +4,6 @@ from alglib.param.SA import AdaptiveSimulatedAnnealingParamSetting as AdaptiveSA
 
 # import & rename VNS parameters
 from alglib.param.VNS import VariableNeighborhoodSearchParamSetting as VNS_Param
+
+# import & rename VNS parameters
+from alglib.param.PSO import ParticleSwarmOptimizationAlgorithmParamSetting as PSO_Param
