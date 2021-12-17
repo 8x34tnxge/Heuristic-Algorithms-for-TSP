@@ -1,5 +1,12 @@
-# SA for TSP
+# Heuristic Algorithms for TSP
 
-normal and adaptive (temperature) Simulated Annealing algorithm is included.
+the algorithms in [another project](https://github.com/ZhuYing-CSU/Some_VRP_Algorithms) may be transferred to here.
 
-the algorithms in [another project](https://github.com/ZhuYing-CSU/Some_VRP_Algorithms) may be transfered to here.
+## Implement
+
+- [x] Simulated Annealing Algorithm
+- [x] Adaptive (temperate) Simulated Annealing Algorithm
+- [x] Variable Neighborhood Search Algorithm
+- [ ] Tabu Search Algorithm
+- [ ] Genetic Algorithm
+- [ ] Particle Swarm Optimization Algorithm
