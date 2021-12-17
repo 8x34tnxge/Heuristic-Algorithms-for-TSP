@@ -40,7 +40,7 @@ class VariableNeighborhoodSearch(Base):
         initSchedule: Callable = initSolution,
         calcValue: Callable = distFunc,
     ) -> None:
-        """the main procedure for SA
+        """the main procedure for VNS
 
         Args:
             dataLoader (DataLoader): where you can query data from
