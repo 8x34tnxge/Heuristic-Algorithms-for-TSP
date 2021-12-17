@@ -134,7 +134,7 @@ class VariableNeighborhoodSearch(Base):
                     self, self.localSchedule, self.localValue, dataLoader
                 )
                 updateLocalSchedule(
-                    schedule, value, temperate, maximize=self.params.maximize
+                    schedule, value, maximize=self.params.maximize
                 )
                 updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
                 methodCnt = updateCounter(methodCnt, value)

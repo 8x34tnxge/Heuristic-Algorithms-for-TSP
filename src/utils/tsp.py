@@ -135,7 +135,7 @@ def twoOpt(
 
         return bestIdx1, bestIdx2
 
-    method = self.params.method
+    method = getattr(self.params, "method", "random")
     newSchedule = []
     newSchedule.extend(schedule)
     if method == "random":
