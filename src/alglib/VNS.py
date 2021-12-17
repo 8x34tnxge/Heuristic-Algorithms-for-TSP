@@ -66,7 +66,7 @@ class VariableNeighborhoodSearch(Base):
                 maximize (bool, optional): whether to maximize or minimize the target value. Defaults to False.
                 force (bool, optional): whether to force localSchedule and its value to update. Defaults to False.
             """
-            if not force and (self.localValue > value) ^ maximize:
+            if not force and (self.localValue < value) ^ maximize:
                 return
 
             self.localSchedule = []
@@ -83,7 +83,7 @@ class VariableNeighborhoodSearch(Base):
                 value (float): the current value
                 maximize (bool, optional): whether to maximize or minimize the target value. Defaults to False.
             """
-            if (self.bestValue > value) ^ maximize:
+            if (self.bestValue < value) ^ maximize:
                 return
 
             self.bestSchedule = []

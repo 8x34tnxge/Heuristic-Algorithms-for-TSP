@@ -1,5 +1,6 @@
 from typing import Callable, List
 
+import numpy as np
 from tqdm import tqdm
 from utils.base import DataLoader
 from utils.tsp import distFunc, initSolution, swap
@@ -22,7 +23,7 @@ class ParticleSwarmOptimization(Base):
         self.bestValueWatcher = []
         self.params: PSO_Param = params
         self.particles = [-1 for _ in range(self.params.particleNum)]
-        self.particleValues = [-1 for _ in range(self.params.particleNum)]
+        self.particleValues = [np.inf for _ in range(self.params.particleNum)]
         super().__init__()
 
     def __setattr__(self, name: str, value: float) -> None:
@@ -90,7 +91,7 @@ class ParticleSwarmOptimization(Base):
                 maximize (bool, optional): whether to maximize or minimize the target value. Defaults to False.
             """
             for schedule, value in zip(self.particles, self.particleValues):
-                if (self.localValue > value) ^ maximize:
+                if (self.localValue < value) ^ maximize:
                     return
 
                 self.localSchedule = []
@@ -106,7 +107,7 @@ class ParticleSwarmOptimization(Base):
                 maximize (bool, optional): whether to maximize or minimize the target value. Defaults to False.
             """
             for schedule, value in zip(self.particles, self.particleValues):
-                if (self.bestValue > value) ^ maximize:
+                if (self.bestValue < value) ^ maximize:
                     return
 
                 self.bestSchedule = []
@@ -114,17 +115,17 @@ class ParticleSwarmOptimization(Base):
                 self.bestValue = value
 
         # main procedure
-        for particleIdx in range(self.params.epochNum):
+        for particleIdx in range(self.params.particleNum):
             schedule, value = initSchedule(dataLoader, calcValue)
             updateParticle(
                 particleIdx, schedule, value, maximize=self.params.maximize, force=True
             )
 
-        updateLocalSchedule(force=True, maximize=self.params.maximize)
-        updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
+        updateLocalSchedule(maximize=self.params.maximize)
+        updateGlobalSchedule(maximize=self.params.maximize)
 
         for epoch in tqdm(range(epochNum)):
-            for idx, particle, particleValue in enumerate(zip(self.particles, self.particleValues)):
+            for idx, (particle, particleValue) in enumerate(zip(self.particles, self.particleValues)):
                 schedule, value = fetchNewSchedule(
                     self, particle, particleValue, dataLoader
                 )

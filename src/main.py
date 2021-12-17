@@ -3,14 +3,79 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 
-from alglib import SA, AdaptiveSA
-from alglib.param import AdaptiveSA_Param, SA_Param
+from alglib import SA, AdaptiveSA, VNS, PSO
+from alglib.param import AdaptiveSA_Param, SA_Param, VNS_Param, PSO_Param
 from config import getConfig
 from utils import CityDataLoader, visualize
-from utils.tsp import intersectionRefactor
+from utils.tsp import twoOpt
 
 
 def main():
+    PSO_test()
+
+def PSO_test():
+    eachTimes = 10
+    result = defaultdict(list)
+    algorithm = PSO
+    param = PSO_Param(
+        alpha = 0.5,
+        beta = 0.5,
+        particleNum = 10,
+        epochNum = 20,
+        maximize = False
+    )
+
+    for _ in range(eachTimes):
+        value = unitTest(
+            algorithm, param, "output", f"{algorithm.__name__}"
+        )
+        result[f"{algorithm.__name__}"].append(value)
+
+    result = pd.DataFrame(
+        np.array(
+            [
+                result[f"{algorithm.__name__}"]
+            ]
+        ),
+        columns=[x for x in range(1, eachTimes + 1)],
+        index=[f"{algorithm.__name__}"],
+    )
+    result["mean"] = result.mean(axis=1)
+    result["std"] = result.std(axis=1)
+    result = result.round(3)
+    result.to_csv(f"testResult.csv", sep="|")
+
+def VNS_test():
+    eachTimes = 10
+    result = defaultdict(list)
+    algorithm = VNS
+    param = VNS_Param(
+        epochNum=10,
+        methods=[twoOpt, twoOpt],
+        maximize=False
+    )
+
+    for _ in range(eachTimes):
+        value = unitTest(
+            algorithm, param, "output", f"{algorithm.__name__}"
+        )
+        result[f"{algorithm.__name__}"].append(value)
+
+    result = pd.DataFrame(
+        np.array(
+            [
+                result[f"{algorithm.__name__}"]
+            ]
+        ),
+        columns=[x for x in range(1, eachTimes + 1)],
+        index=[f"{algorithm.__name__}"],
+    )
+    result["mean"] = result.mean(axis=1)
+    result["std"] = result.std(axis=1)
+    result = result.round(3)
+    result.to_csv(f"testResult.csv", sep="|")
+
+def SA_test():
     eachTimes = 10
     algorithms = [SA, AdaptiveSA]
     result = defaultdict(list)
