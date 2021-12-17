@@ -7,6 +7,6 @@
 
 # the directory to be ignored
 __pycache__
-algCore/__pycache__
-algCore/param/__pycache__
+alglib/__pycache__
+alglib/param/__pycache__
 utils/__pycache__

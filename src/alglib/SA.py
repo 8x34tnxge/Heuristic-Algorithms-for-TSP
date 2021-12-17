@@ -6,8 +6,8 @@ from tqdm import tqdm
 from utils.base import DataLoader
 from utils.tsp import distFunc, initSolution, twoOpt
 
-from algCore.base import Base
-from algCore.param import AdaptiveSA_Param, SA_Param
+from alglib.base import Base
+from alglib.param import AdaptiveSA_Param, SA_Param
 
 
 class SimulatedAnnealing(Base):

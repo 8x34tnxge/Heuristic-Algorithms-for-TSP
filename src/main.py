@@ -3,8 +3,8 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 
-from algCore import SA, AdaptiveSA
-from algCore.param import AdaptiveSA_Param, SA_Param
+from alglib import SA, AdaptiveSA
+from alglib.param import AdaptiveSA_Param, SA_Param
 from config import getConfig
 from utils import CityDataLoader, visualize
 
