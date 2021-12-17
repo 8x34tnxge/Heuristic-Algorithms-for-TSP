@@ -23,9 +23,15 @@ def main():
                 coolRate=0.85,
                 epochNum=100,
                 method=method,
+                maximize=False,
             ),
             AdaptiveSA_Param(
-                minTemperate=1, penalWeight=1, delta=1, epochNum=2000, method=method
+                minTemperate=1,
+                penalWeight=1,
+                delta=1,
+                epochNum=2000,
+                method=method,
+                maximize=False,
             ),
         ]
         for algorithm, param in zip(algorithms, params):
@@ -71,7 +77,12 @@ def unitTest(algorithm, param, outputDir, outputName):
     print(f"Distance: {value}")
     # TODO visualize the result and attach detector to algorithm
     visualize(
-        schedule, dataloader, alg.bestValueWatcher, fileDir=outputDir, fileName=outputName, save=True
+        schedule,
+        dataloader,
+        alg.bestValueWatcher,
+        fileDir=outputDir,
+        fileName=outputName,
+        save=True,
     )
     print("Result is saved!")
     return alg.bestValue

@@ -1,0 +1,140 @@
+from typing import Callable, List
+
+from tqdm import tqdm
+from utils.base import DataLoader
+from utils.tsp import distFunc, initSolution
+
+from alglib.base import Base
+from alglib.param import VNS_Param
+
+
+class VariableNeighborhoodSearch(Base):
+    """
+    Variable Neighborhood Search Algorithm
+    """
+
+    def __init__(self, params: VNS_Param) -> None:
+        """initialize SA algorithm
+
+        Args:
+            params (VNS_Param): the parameter object for Variable Neighborhood Search algorithm
+        """
+        self.bestValueWatcher = []
+        self.params: VNS_Param = params
+        super().__init__()
+
+    def __setattr__(self, name: str, value: float) -> None:
+        """the method to set value watcher attribute
+
+        Args:
+            name (str): watcher's name
+            value (float): the notable value needed to be recorded
+        """
+        if name == "bestValue":
+            self.bestValueWatcher.append(value)
+        super().__setattr__(name, value)
+
+    def run(
+        self,
+        dataLoader: DataLoader,
+        initSchedule: Callable = initSolution,
+        calcValue: Callable = distFunc,
+    ) -> None:
+        """the main procedure for SA
+
+        Args:
+            dataLoader (DataLoader): where you can query data from
+            initSchedule (Callable, optional): the method to init schedule. Defaults to initSolution.
+            calcValue (Callable, optional): the method to calc value from given schedule. Defaults to distFunc.
+            fetchNewSchedule (Callable, optional): the method to fetch new schedule. Defaults to twoOpt.
+
+        Raises:
+            ValueError: check whether the cool rate is in [0, 1)
+        """
+        # load params
+        temperate = self.params.initialTemperate
+        terminatedTemperate = self.params.terminatedTemperate
+        coolRate = self.params.coolRate
+        epochNum = self.params.epochNum
+
+        try:
+            assert 0 <= coolRate < 1
+        except AssertionError:
+            raise ValueError(
+                f"CoolRate must be in [0, 1). Current coolRate's value is {coolRate}"
+            )
+
+        # define the util functions
+        def updateLocalSchedule(
+            schedule: List[int],
+            value: float,
+            maximize: bool = False,
+            force: bool = False,
+        ) -> None:
+            """the method to update local schedule
+
+            Args:
+                schedule (List[int]): the current schedule
+                value (float): the current value
+                maximize (bool, optional): whether to maximize or minimize the target value. Defaults to False.
+                force (bool, optional): whether to force localSchedule and its value to update. Defaults to False.
+            """
+            if not force and (self.localValue > value) ^ maximize:
+                return
+
+            self.localSchedule = []
+            self.localSchedule.extend(schedule)
+            self.localValue = value
+
+        def updateGlobalSchedule(
+            schedule: List[int], value: float, maximize: bool = False
+        ) -> None:
+            """the method to update global schedule
+
+            Args:
+                schedule (List[int]): the current schedule
+                value (float): the current value
+                maximize (bool, optional): whether to maximize or minimize the target value. Defaults to False.
+            """
+            if (self.bestValue > value) ^ maximize:
+                return
+
+            self.bestSchedule = []
+            self.bestSchedule.extend(schedule)
+            self.bestValue = value
+
+        def updateCounter(counter: int, value: float) -> int:
+            """check whether local value is updated
+
+            Args:
+                counter (int): the solver counter
+                value (float): the current value
+
+            Returns:
+                int: new solver counter
+            """
+            if value == self.localValue:
+                return counter + 1
+            else:
+                return 0
+
+        # main procedure
+        for epoch in tqdm(range(epochNum)):
+            schedule, value = initSchedule(dataLoader, calcValue)
+
+            updateLocalSchedule(
+                schedule, value, temperate, force=True, maximize=self.params.maximize
+            )
+            updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
+
+            methodCnt = 0
+            while methodCnt < len(self.methods):
+                fetchNewSchedule = self.params.methods[methodCnt]
+                schedule, value = fetchNewSchedule(
+                    self, self.localSchedule, self.localValue, dataLoader
+                )
+                updateLocalSchedule(
+                    schedule, value, temperate, maximize=self.params.maximize
+                )
+                updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
+                methodCnt = updateCounter(methodCnt, value)

@@ -10,6 +10,7 @@ class SimulatedAnnealingParamSetting:
     coolRate: np.float32
     epochNum: np.int16
     method: str
+    maximize: bool
 
 
 @dataclass
@@ -19,3 +20,4 @@ class AdaptiveSimulatedAnnealingParamSetting:
     penalWeight: np.float32
     delta: np.float32
     method: str
+    maximize: bool

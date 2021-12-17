@@ -1,5 +1,5 @@
 import random
-from typing import Any, Callable, List
+from typing import Callable, List
 
 import numpy as np
 from tqdm import tqdm
@@ -114,8 +114,8 @@ class SimulatedAnnealing(Base):
         # main procedure
         schedule, value = initSchedule(dataLoader, calcValue)
 
-        updateLocalSchedule(schedule, value, temperate)
-        updateGlobalSchedule(schedule, value)
+        updateLocalSchedule(schedule, value, temperate, maximize=self.params.maximize)
+        updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
 
         while temperate > terminatedTemperate:
             tbar = tqdm(range(epochNum))
@@ -125,8 +125,8 @@ class SimulatedAnnealing(Base):
                     self, self.localSchedule, self.localValue, dataLoader
                 )
 
-                updateLocalSchedule(schedule, value, temperate)
-                updateGlobalSchedule(schedule, value)
+                updateLocalSchedule(schedule, value, temperate, maximize=self.params.maximize)
+                updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
 
             temperate *= coolRate
 
@@ -149,8 +149,7 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
 
     def run(
         self,
-        dataLoader: DataLoader,
-        initSchedule: Callable = initSolution,
+        dataLoader: DataLoader, initSchedule: Callable = initSolution,
         calcValue: Callable = distFunc,
         fetchNewSchedule: Callable = twoOpt,
     ) -> None:
@@ -216,8 +215,8 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
         # init the first route or schedule
         schedule, value = initSchedule(dataLoader, calcValue)
 
-        updateLocalSchedule(schedule, value, minTemperate)
-        updateGlobalSchedule(schedule, value)
+        updateLocalSchedule(schedule, value, minTemperate, maximize=self.params.maximize)
+        updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
 
         # solve
         tbar = tqdm(range(epochNum))
@@ -229,5 +228,5 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
                 self, self.localSchedule, self.localValue, dataLoader
             )
 
-            updateLocalSchedule(schedule, value, temperate)
-            updateGlobalSchedule(schedule, value)
+            updateLocalSchedule(schedule, value, temperate, maximize=self.params.maximize)
+            updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
