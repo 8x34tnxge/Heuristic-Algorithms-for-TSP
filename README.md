@@ -10,4 +10,4 @@ the algorithms in [another project](https://github.com/ZhuYing-CSU/Some_VRP_Algo
 - [x] Variable Neighborhood Search Algorithm
 - [ ] Tabu Search Algorithm
 - [ ] Genetic Algorithm
-- [ ] Particle Swarm Optimization Algorithm
+- [x] Particle Swarm Optimization Algorithm
