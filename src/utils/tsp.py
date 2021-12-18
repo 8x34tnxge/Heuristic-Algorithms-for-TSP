@@ -5,6 +5,7 @@ import numpy as np
 
 from utils.base import DataLoader
 
+
 def intersectionAnalysis(
     schedule: List[int], dataLoader: DataLoader
 ) -> Tuple[int, int] or None:
@@ -59,7 +60,9 @@ def intersectionAnalysis(
 
     for prevIdx, prevPos in enumerate(schedule[:-1]):
         for postIdx, postPos in enumerate(schedule):
-            if prevPos is postPos:
+            if abs(prevIdx-postIdx) <= 1 or (prevIdx+postIdx == len(schedule) - 1 and prevIdx * postIdx == 0):
+                continue
+            if prevIdx >= postIdx:
                 continue
 
             if isIntersected(
@@ -70,7 +73,7 @@ def intersectionAnalysis(
                     dataLoader[schedule[(postIdx + 1) % len(dataLoader)]],
                 ]
             ):
-                return prevPos, prevPos
+                return prevPos, postPos
 
     return None
 
@@ -93,15 +96,15 @@ def intersectionRefactor(
     def calcDelta(
         schedule: List[int], dataLoader: DataLoader, prevPos: int, postPos: int
     ) -> float:
-        print(f"{prevPos} {postPos}")
+        prevIdx, postIdx = schedule.index(prevPos), schedule.index(postPos)
         delta = (
-            -np.linalg.norm(
+            - np.linalg.norm(
                 np.array(
                     [
                         dataLoader[prevPos].x
-                        - dataLoader[schedule[schedule.index(prevPos) - 1]].x,
+                        - dataLoader[schedule[prevIdx - 1]].x,
                         dataLoader[prevPos].y
-                        - dataLoader[schedule[schedule.index(prevPos) - 1]].y,
+                        - dataLoader[schedule[prevIdx - 1]].y,
                     ]
                 )
             )
@@ -109,9 +112,13 @@ def intersectionRefactor(
                 np.array(
                     [
                         dataLoader[postPos].x
-                        - dataLoader[schedule[(schedule.index(postPos) + 1) % len(dataLoader)]].x,
+                        - dataLoader[
+                            schedule[(postIdx + 1) % len(dataLoader)]
+                        ].x,
                         dataLoader[postPos].y
-                        - dataLoader[schedule[(schedule.index(postPos) + 1) % len(dataLoader)]].y,
+                        - dataLoader[
+                            schedule[(postIdx + 1) % len(dataLoader)]
+                        ].y,
                     ]
                 )
             )
@@ -119,9 +126,13 @@ def intersectionRefactor(
                 np.array(
                     [
                         dataLoader[prevPos].x
-                        - dataLoader[schedule[(schedule.index(postPos) + 1) % len(dataLoader)]].x,
+                        - dataLoader[
+                            schedule[(postIdx + 1) % len(dataLoader)]
+                        ].x,
                         dataLoader[prevPos].y
-                        - dataLoader[schedule[(schedule.index(postPos) + 1) % len(dataLoader)]].y,
+                        - dataLoader[
+                            schedule[(postIdx + 1) % len(dataLoader)]
+                        ].y,
                     ]
                 )
             )
@@ -129,18 +140,20 @@ def intersectionRefactor(
                 np.array(
                     [
                         dataLoader[postPos].x
-                        - dataLoader[schedule[schedule.index(prevPos) - 1]].x,
+                        - dataLoader[schedule[prevIdx - 1]].x,
                         dataLoader[postPos].y
-                        - dataLoader[schedule[schedule.index(prevPos) - 1]].y,
+                        - dataLoader[schedule[prevIdx - 1]].y,
                     ]
                 )
             )
         )
         return delta
 
-    schedule[prevPos : postPos + 1] = reversed(schedule[prevPos : postPos + 1])
+    prevIdx, postIdx = schedule.index(prevPos), schedule.index(postPos)
     value = value + calcDelta(schedule, dataLoader, prevPos, postPos)
+    schedule[prevIdx : postIdx + 1] = reversed(schedule[prevIdx : postIdx + 1])
     return schedule, value
+
 
 def initSolution(dataLoader: DataLoader, distFunc: Callable):
     schedule = []
@@ -192,7 +205,7 @@ def twoOpt(
         prevGeoInfo4i = dataLoader[
             schedule[(prevPos + len(schedule) - 1) % len(schedule)]
         ]
-        currGeoInfo4i = dataLoader[prevPos]
+        currGeoInfo4i = dataLoader[schedule[prevPos]]
 
         currGeoInfo4j = dataLoader[schedule[nextPos]]
         nextGeoInfo4j = dataLoader[schedule[(nextPos + 1) % len(schedule)]]
@@ -330,89 +343,134 @@ def swap(
     doIntersectAnalysis: bool = True,
 ) -> Tuple[List[int], float]:
     def calcSwapDelta(schedule, dataLoader, prevIdx, postIdx):
+        prevIdx, postIdx = sorted([prevIdx, postIdx])
         delta = (
-            - np.linalg.norm(
-                np.array([
-                    dataLoader[schedule[prevIdx]].x - dataLoader[schedule[prevIdx - 1]].x,
-                    dataLoader[schedule[prevIdx]].y - dataLoader[schedule[prevIdx - 1]].y
-                ])
+            -np.linalg.norm(
+                np.array(
+                    [
+                        dataLoader[schedule[prevIdx]].x
+                        - dataLoader[schedule[prevIdx - 1]].x,
+                        dataLoader[schedule[prevIdx]].y
+                        - dataLoader[schedule[prevIdx - 1]].y,
+                    ]
+                )
             )
             - np.linalg.norm(
-                np.array([
-                    dataLoader[schedule[postIdx]].x
-                    - dataLoader[schedule[(postIdx + 1) % len(dataLoader)]].x,
-                    dataLoader[schedule[postIdx]].y
-                    - dataLoader[schedule[(postIdx + 1) % len(dataLoader)]].y
-                ])
+                np.array(
+                    [
+                        dataLoader[schedule[postIdx]].x
+                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].x,
+                        dataLoader[schedule[postIdx]].y
+                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].y,
+                    ]
+                )
             )
             + np.linalg.norm(
-                np.array([
-                    dataLoader[schedule[prevIdx]].x
-                    - dataLoader[schedule[(postIdx + 1) % len(dataLoader)]].x,
-                    dataLoader[schedule[prevIdx]].y
-                    - dataLoader[schedule[(postIdx + 1) % len(dataLoader)]].y
-                ])
+                np.array(
+                    [
+                        dataLoader[schedule[prevIdx]].x
+                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].x,
+                        dataLoader[schedule[prevIdx]].y
+                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].y,
+                    ]
+                )
             )
             + np.linalg.norm(
-                np.array([
-                    dataLoader[schedule[postIdx]].x - dataLoader[schedule[prevIdx - 1]].x,
-                    dataLoader[schedule[postIdx]].y - dataLoader[schedule[prevIdx - 1]].y
-                ])
+                np.array(
+                    [
+                        dataLoader[schedule[postIdx]].x
+                        - dataLoader[schedule[prevIdx - 1]].x,
+                        dataLoader[schedule[postIdx]].y
+                        - dataLoader[schedule[prevIdx - 1]].y,
+                    ]
+                )
             )
         )
 
         if prevIdx == 0 and postIdx == len(dataLoader) - 1:
             delta = (
                 -np.linalg.norm(
-                    np.array([
-                        dataLoader[schedule[prevIdx]].x - dataLoader[schedule[(prevIdx + 1) % len(dataLoader)]].x,
-                        dataLoader[schedule[prevIdx]].y - dataLoader[schedule[(prevIdx + 1) % len(dataLoader)]].y
-                    ])
+                    np.array(
+                        [
+                            dataLoader[schedule[prevIdx]].x
+                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].x,
+                            dataLoader[schedule[prevIdx]].y
+                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].y,
+                        ]
+                    )
                 )
                 - np.linalg.norm(
-                    np.array([
-                        dataLoader[schedule[postIdx]].x - dataLoader[schedule[postIdx - 1]].x,
-                        dataLoader[schedule[postIdx]].y - dataLoader[schedule[postIdx - 1]].y
-                    ])
+                    np.array(
+                        [
+                            dataLoader[schedule[postIdx]].x
+                            - dataLoader[schedule[postIdx - 1]].x,
+                            dataLoader[schedule[postIdx]].y
+                            - dataLoader[schedule[postIdx - 1]].y,
+                        ]
+                    )
                 )
                 + np.linalg.norm(
-                    np.array([
-                        dataLoader[schedule[prevIdx]].x - dataLoader[schedule[postIdx - 1]].x,
-                        dataLoader[schedule[prevIdx]].y - dataLoader[schedule[postIdx - 1]].y
-                    ])
+                    np.array(
+                        [
+                            dataLoader[schedule[prevIdx]].x
+                            - dataLoader[schedule[postIdx - 1]].x,
+                            dataLoader[schedule[prevIdx]].y
+                            - dataLoader[schedule[postIdx - 1]].y,
+                        ]
+                    )
                 )
                 + np.linalg.norm(
-                    np.array([
-                        dataLoader[schedule[postIdx]].x - dataLoader[schedule[(prevIdx + 1) % len(dataLoader)]].x,
-                        dataLoader[schedule[postIdx]].y - dataLoader[schedule[(prevIdx + 1) % len(dataLoader)]].y
-                    ])
+                    np.array(
+                        [
+                            dataLoader[schedule[postIdx]].x
+                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].x,
+                            dataLoader[schedule[postIdx]].y
+                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].y,
+                        ]
+                    )
                 )
             )
         elif not (abs(prevIdx - postIdx) <= 1):
             delta += (
                 -np.linalg.norm(
-                    np.array([
-                        dataLoader[schedule[prevIdx]].x - dataLoader[schedule[(prevIdx + 1) % len(dataLoader)]].x,
-                        dataLoader[schedule[prevIdx]].y - dataLoader[schedule[(prevIdx + 1) % len(dataLoader)]].y
-                    ])
+                    np.array(
+                        [
+                            dataLoader[schedule[prevIdx]].x
+                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].x,
+                            dataLoader[schedule[prevIdx]].y
+                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].y,
+                        ]
+                    )
                 )
                 - np.linalg.norm(
-                    np.array([
-                        dataLoader[schedule[postIdx]].x - dataLoader[schedule[postIdx - 1]].x,
-                        dataLoader[schedule[postIdx]].y - dataLoader[schedule[postIdx - 1]].y
-                    ])
+                    np.array(
+                        [
+                            dataLoader[schedule[postIdx]].x
+                            - dataLoader[schedule[postIdx - 1]].x,
+                            dataLoader[schedule[postIdx]].y
+                            - dataLoader[schedule[postIdx - 1]].y,
+                        ]
+                    )
                 )
                 + np.linalg.norm(
-                    np.array([
-                        dataLoader[schedule[prevIdx]].x - dataLoader[schedule[postIdx - 1]].x,
-                        dataLoader[schedule[prevIdx]].y - dataLoader[schedule[postIdx - 1]].y
-                    ])
+                    np.array(
+                        [
+                            dataLoader[schedule[prevIdx]].x
+                            - dataLoader[schedule[postIdx - 1]].x,
+                            dataLoader[schedule[prevIdx]].y
+                            - dataLoader[schedule[postIdx - 1]].y,
+                        ]
+                    )
                 )
                 + np.linalg.norm(
-                    np.array([
-                        dataLoader[schedule[postIdx]].x - dataLoader[schedule[(prevIdx + 1) % len(dataLoader)]].x,
-                        dataLoader[schedule[postIdx]].y - dataLoader[schedule[(prevIdx + 1) % len(dataLoader)]].y
-                    ])
+                    np.array(
+                        [
+                            dataLoader[schedule[postIdx]].x
+                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].x,
+                            dataLoader[schedule[postIdx]].y
+                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].y,
+                        ]
+                    )
                 )
             )
 
@@ -427,16 +485,19 @@ def swap(
         if schedule[idx] != self.bestSchedule[idx]:
             operations.append((idx, self.bestSchedule.index(pos), beta))
 
+
     for operation in operations:
-        prevPos, postPos, probability = operation
+        prevIdx, postIdx, probability = operation
         if random.random() < probability:
-            value += calcSwapDelta(schedule, dataLoader, prevPos, postPos)
-            prevPos, postPos = postPos, prevPos
+            value += calcSwapDelta(schedule, dataLoader, prevIdx, postIdx)
+            schedule[prevIdx], schedule[postIdx] = schedule[postIdx], schedule[prevIdx]
 
     if doIntersectAnalysis:
         analysisResult = intersectionAnalysis(schedule, dataLoader)
         if analysisResult is not None:
             prevPos, postPos = analysisResult
-            schedule, value = intersectionRefactor(schedule, dataLoader, value, prevPos, postPos)
+            schedule, value = intersectionRefactor(
+                schedule, dataLoader, value, prevPos, postPos
+            )
 
     return schedule, value

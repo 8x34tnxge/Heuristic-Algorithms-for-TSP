@@ -19,9 +19,9 @@ def PSO_test():
     algorithm = PSO
     param = PSO_Param(
         alpha = 0.5,
-        beta = 0.5,
-        particleNum = 10,
-        epochNum = 20,
+        beta = 0.7,
+        particleNum = 75,
+        epochNum = 90,
         maximize = False
     )
 
@@ -50,7 +50,7 @@ def VNS_test():
     result = defaultdict(list)
     algorithm = VNS
     param = VNS_Param(
-        epochNum=10,
+        epochNum=1000,
         methods=[twoOpt, twoOpt],
         maximize=False
     )
