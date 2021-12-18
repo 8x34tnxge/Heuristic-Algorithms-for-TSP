@@ -11,3 +11,5 @@ class ParticleSwarmOptimizationAlgorithmParamSetting:
     particleNum: np.int16
     epochNum: np.int16
     maximize: bool
+    doIntersectAnalysis: bool
+    initStatusJudgement: float

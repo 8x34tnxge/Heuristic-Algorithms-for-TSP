@@ -9,3 +9,5 @@ class VariableNeighborhoodSearchParamSetting:
     epochNum: np.int16
     methods: List[Callable]
     maximize: bool
+    doIntersectAnalysis: bool
+    initStatusJudgement: float

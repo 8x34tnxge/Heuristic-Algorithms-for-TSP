@@ -11,7 +11,7 @@ from utils.tsp import twoOpt
 
 
 def main():
-    PSO_test()
+    VNS_test()
 
 def PSO_test():
     eachTimes = 10
@@ -21,8 +21,10 @@ def PSO_test():
         alpha = 0.5,
         beta = 0.7,
         particleNum = 75,
-        epochNum = 90,
-        maximize = False
+        epochNum = 200,
+        maximize = False,
+        doIntersectAnalysis = True,
+        initStatusJudgement = 2 / 3,
     )
 
     for _ in range(eachTimes):
@@ -51,8 +53,10 @@ def VNS_test():
     algorithm = VNS
     param = VNS_Param(
         epochNum=1000,
-        methods=[twoOpt, twoOpt],
-        maximize=False
+        methods=[twoOpt],
+        maximize=False,
+        doIntersectAnalysis = True,
+        initStatusJudgement = 2 / 3,
     )
 
     for _ in range(eachTimes):
@@ -90,6 +94,8 @@ def SA_test():
                 epochNum=100,
                 method=method,
                 maximize=False,
+                doIntersectAnalysis=False,
+                initStatusJudgement = 2 / 3,
             ),
             AdaptiveSA_Param(
                 minTemperate=1,
@@ -98,6 +104,8 @@ def SA_test():
                 epochNum=2000,
                 method=method,
                 maximize=False,
+                doIntersectAnalysis=False,
+                initStatusJudgement = 2 / 3,
             ),
         ]
         for algorithm, param in zip(algorithms, params):

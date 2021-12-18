@@ -6,6 +6,27 @@ import numpy as np
 from utils.base import DataLoader
 
 
+def distFunc(schedule: List[int], dataLoader: DataLoader) -> float:
+    """the method to calc value based on the current schedule
+
+    Args:
+        schedule (List[int]): the current schedule
+        dataLoader (DataLoader): where you can query the data from
+
+    Returns:
+        float: the target value
+    """
+    dist = 0
+    for i in range(len(schedule)):
+        prevGeoInfo = dataLoader[schedule[i]]
+        nextGeoInfo = dataLoader[schedule[(i + 1) % len(schedule)]]
+
+        deltaX = prevGeoInfo.x - nextGeoInfo.x
+        deltaY = prevGeoInfo.y - nextGeoInfo.y
+        dist += np.linalg.norm(np.array([deltaX, deltaY]))
+    return dist
+
+
 def intersectionAnalysis(
     schedule: List[int], dataLoader: DataLoader
 ) -> Tuple[int, int] or None:
@@ -60,9 +81,9 @@ def intersectionAnalysis(
 
     for prevIdx, prevPos in enumerate(schedule[:-1]):
         for postIdx, postPos in enumerate(schedule):
-            if abs(prevIdx-postIdx) <= 1 or (prevIdx+postIdx == len(schedule) - 1 and prevIdx * postIdx == 0):
-                continue
-            if prevIdx >= postIdx:
+            if postIdx - prevIdx <= 1 or (
+                prevIdx + postIdx == len(schedule) - 1 and prevIdx * postIdx == 0
+            ):
                 continue
 
             if isIntersected(
@@ -73,7 +94,7 @@ def intersectionAnalysis(
                     dataLoader[schedule[(postIdx + 1) % len(dataLoader)]],
                 ]
             ):
-                return prevPos, postPos
+                return schedule[prevIdx + 1], postPos
 
     return None
 
@@ -98,13 +119,11 @@ def intersectionRefactor(
     ) -> float:
         prevIdx, postIdx = schedule.index(prevPos), schedule.index(postPos)
         delta = (
-            - np.linalg.norm(
+            -np.linalg.norm(
                 np.array(
                     [
-                        dataLoader[prevPos].x
-                        - dataLoader[schedule[prevIdx - 1]].x,
-                        dataLoader[prevPos].y
-                        - dataLoader[schedule[prevIdx - 1]].y,
+                        dataLoader[prevPos].x - dataLoader[schedule[prevIdx - 1]].x,
+                        dataLoader[prevPos].y - dataLoader[schedule[prevIdx - 1]].y,
                     ]
                 )
             )
@@ -112,13 +131,9 @@ def intersectionRefactor(
                 np.array(
                     [
                         dataLoader[postPos].x
-                        - dataLoader[
-                            schedule[(postIdx + 1) % len(dataLoader)]
-                        ].x,
+                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].x,
                         dataLoader[postPos].y
-                        - dataLoader[
-                            schedule[(postIdx + 1) % len(dataLoader)]
-                        ].y,
+                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].y,
                     ]
                 )
             )
@@ -126,23 +141,17 @@ def intersectionRefactor(
                 np.array(
                     [
                         dataLoader[prevPos].x
-                        - dataLoader[
-                            schedule[(postIdx + 1) % len(dataLoader)]
-                        ].x,
+                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].x,
                         dataLoader[prevPos].y
-                        - dataLoader[
-                            schedule[(postIdx + 1) % len(dataLoader)]
-                        ].y,
+                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].y,
                     ]
                 )
             )
             + np.linalg.norm(
                 np.array(
                     [
-                        dataLoader[postPos].x
-                        - dataLoader[schedule[prevIdx - 1]].x,
-                        dataLoader[postPos].y
-                        - dataLoader[schedule[prevIdx - 1]].y,
+                        dataLoader[postPos].x - dataLoader[schedule[prevIdx - 1]].x,
+                        dataLoader[postPos].y - dataLoader[schedule[prevIdx - 1]].y,
                     ]
                 )
             )
@@ -150,7 +159,7 @@ def intersectionRefactor(
         return delta
 
     prevIdx, postIdx = schedule.index(prevPos), schedule.index(postPos)
-    value = value + calcDelta(schedule, dataLoader, prevPos, postPos)
+    value += calcDelta(schedule, dataLoader, prevPos, postPos)
     schedule[prevIdx : postIdx + 1] = reversed(schedule[prevIdx : postIdx + 1])
     return schedule, value
 
@@ -172,6 +181,7 @@ def twoOpt(
     value: float,
     dataLoader: DataLoader,
     maximized: bool = False,
+    initStatus: bool = False,
 ) -> Tuple[List[int], float]:
     """the 2-opt method to generate new schedule
 
@@ -302,36 +312,23 @@ def twoOpt(
             f"Methods only include 'random', 'best' and 'mixed'. Method {method} is not existed"
         )
 
-    delta = calcDelta(schedule, swapIdx1, swapIdx2)
-    value += delta
+    value += calcDelta(schedule, swapIdx1, swapIdx2)
     for delta in range((swapIdx2 - swapIdx1) // 2 + 1):
         newSchedule[swapIdx1 + delta], newSchedule[swapIdx2 - delta] = (
             newSchedule[swapIdx2 - delta],
             newSchedule[swapIdx1 + delta],
         )
 
+    while not initStatus and self.params.doIntersectAnalysis:
+        analysisResult = intersectionAnalysis(newSchedule, dataLoader)
+        if analysisResult is None:
+            break
+        prevPos, postPos = analysisResult
+        newSchedule, value = intersectionRefactor(
+            newSchedule, dataLoader, value, prevPos, postPos
+        )
+
     return newSchedule, value
-
-
-def distFunc(schedule: List[int], dataLoader: DataLoader) -> float:
-    """the method to calc value based on the current schedule
-
-    Args:
-        schedule (List[int]): the current schedule
-        dataLoader (DataLoader): where you can query the data from
-
-    Returns:
-        float: the target value
-    """
-    dist = 0
-    for i in range(len(schedule)):
-        prevGeoInfo = dataLoader[schedule[i]]
-        nextGeoInfo = dataLoader[schedule[(i + 1) % len(schedule)]]
-
-        deltaX = prevGeoInfo.x - nextGeoInfo.x
-        deltaY = prevGeoInfo.y - nextGeoInfo.y
-        dist += np.linalg.norm(np.array([deltaX, deltaY]))
-    return dist
 
 
 def swap(
@@ -340,7 +337,7 @@ def swap(
     value: float,
     dataLoader: DataLoader,
     maximized: bool = False,
-    doIntersectAnalysis: bool = True,
+    initStatus: bool = False,
 ) -> Tuple[List[int], float]:
     def calcSwapDelta(schedule, dataLoader, prevIdx, postIdx):
         prevIdx, postIdx = sorted([prevIdx, postIdx])
@@ -485,19 +482,19 @@ def swap(
         if schedule[idx] != self.bestSchedule[idx]:
             operations.append((idx, self.bestSchedule.index(pos), beta))
 
-
     for operation in operations:
         prevIdx, postIdx, probability = operation
         if random.random() < probability:
             value += calcSwapDelta(schedule, dataLoader, prevIdx, postIdx)
             schedule[prevIdx], schedule[postIdx] = schedule[postIdx], schedule[prevIdx]
 
-    if doIntersectAnalysis:
+    while not initStatus and self.params.doIntersectAnalysis:
         analysisResult = intersectionAnalysis(schedule, dataLoader)
-        if analysisResult is not None:
-            prevPos, postPos = analysisResult
-            schedule, value = intersectionRefactor(
-                schedule, dataLoader, value, prevPos, postPos
-            )
+        if analysisResult is None:
+            break
+        prevPos, postPos = analysisResult
+        schedule, value = intersectionRefactor(
+            schedule, dataLoader, value, prevPos, postPos
+        )
 
     return schedule, value

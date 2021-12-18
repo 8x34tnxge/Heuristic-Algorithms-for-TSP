@@ -33,7 +33,7 @@ def visualize(
     plt.plot(validValue)
 
     plt.subplot(2, 1, 2)
-    plt.title("路线图")
+    plt.title("route")
     plt.xlabel("")
     plt.ylabel("")
     x = []

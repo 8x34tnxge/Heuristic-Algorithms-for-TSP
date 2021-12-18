@@ -127,7 +127,7 @@ class ParticleSwarmOptimization(Base):
         for epoch in tqdm(range(epochNum)):
             for idx, (particle, particleValue) in enumerate(zip(self.particles, self.particleValues)):
                 schedule, value = fetchNewSchedule(
-                    self, particle, particleValue, dataLoader
+                    self, particle, particleValue, dataLoader, initStatus=(epoch / epochNum) < self.params.initStatusJudgement
                 )
                 updateParticle(
                     idx, schedule, value, maximize=self.params.maximize, force=True

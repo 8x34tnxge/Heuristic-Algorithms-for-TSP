@@ -117,9 +117,13 @@ class VariableNeighborhoodSearch(Base):
             methodCnt = 0
             while methodCnt < len(self.params.methods):
                 fetchNewSchedule = self.params.methods[methodCnt]
+                # print(self.localValue)
                 schedule, value = fetchNewSchedule(
-                    self, self.localSchedule, self.localValue, dataLoader
+                    self, self.localSchedule, self.localValue, dataLoader, initStatus=(epoch / epochNum) < self.params.initStatusJudgement
                 )
+                # print(value)
+                # print(distFunc(schedule, dataLoader))
+                # print()
                 updateLocalSchedule(
                     schedule, value, maximize=self.params.maximize
                 )

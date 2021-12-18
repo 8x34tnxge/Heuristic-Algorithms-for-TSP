@@ -11,6 +11,8 @@ class SimulatedAnnealingParamSetting:
     epochNum: np.int16
     method: str
     maximize: bool
+    doIntersectAnalysis: bool
+    initStatusJudgement: float
 
 
 @dataclass
@@ -21,3 +23,5 @@ class AdaptiveSimulatedAnnealingParamSetting:
     delta: np.float32
     method: str
     maximize: bool
+    doIntersectAnalysis: bool
+    initStatusJudgement: float

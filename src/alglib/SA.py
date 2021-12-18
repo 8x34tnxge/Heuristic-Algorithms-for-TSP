@@ -122,7 +122,7 @@ class SimulatedAnnealing(Base):
             tbar.set_description_str(f"Current Temperate: {temperate:.6f}")
             for epoch in tbar:
                 schedule, value = fetchNewSchedule(
-                    self, self.localSchedule, self.localValue, dataLoader
+                    self, self.localSchedule, self.localValue, dataLoader, initStatus=(epoch / epochNum) < self.params.initStatusJudgement
                 )
 
                 updateLocalSchedule(schedule, value, temperate, maximize=self.params.maximize)
@@ -225,7 +225,7 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
             tbar.set_description_str(f"Current Temperate: {temperate:.6f}")
 
             schedule, value = fetchNewSchedule(
-                self, self.localSchedule, self.localValue, dataLoader
+                self, self.localSchedule, self.localValue, dataLoader, initStatus=(epoch / epochNum) < self.params.initStatusJudgement
             )
 
             updateLocalSchedule(schedule, value, temperate, maximize=self.params.maximize)
