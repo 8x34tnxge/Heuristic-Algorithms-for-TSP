@@ -11,7 +11,7 @@ from utils.tsp import twoOpt
 
 
 def main():
-    VNS_test()
+    PSO_test()
 
 def PSO_test():
     eachTimes = 10

@@ -3,10 +3,10 @@ from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 
-from utils.base import DataLoader
+from utils.dataloader import CityDataLoader
 
 
-def distFunc(schedule: List[int], dataLoader: DataLoader) -> float:
+def distFunc(schedule: List[int], dataLoader: CityDataLoader) -> float:
     """the method to calc value based on the current schedule
 
     Args:
@@ -17,24 +17,20 @@ def distFunc(schedule: List[int], dataLoader: DataLoader) -> float:
         float: the target value
     """
     dist = 0
-    for i in range(len(schedule)):
-        prevGeoInfo = dataLoader[schedule[i]]
-        nextGeoInfo = dataLoader[schedule[(i + 1) % len(schedule)]]
+    for idx, pos in enumerate(schedule):
+        dist += dataLoader.distMat[pos, schedule[(idx + 1) % len(schedule)]]
 
-        deltaX = prevGeoInfo.x - nextGeoInfo.x
-        deltaY = prevGeoInfo.y - nextGeoInfo.y
-        dist += np.linalg.norm(np.array([deltaX, deltaY]))
     return dist
 
 
 def intersectionAnalysis(
-    schedule: List[int], dataLoader: DataLoader
+    schedule: List[int], dataLoader: CityDataLoader
 ) -> Tuple[int, int] or None:
     """check whether the schedule is intersected
 
     Args:
         schedule (List[int]): the current schedule
-        dataLoader (DataLoader): where you can query the data from
+        dataLoader (CityDataLoader): where you can query the data from
 
     Returns:
         Tuple[int, int] or None: the two key points in sequence or nothing
@@ -94,77 +90,56 @@ def intersectionAnalysis(
                     dataLoader[schedule[(postIdx + 1) % len(dataLoader)]],
                 ]
             ):
-                return schedule[prevIdx + 1], postPos
+                return prevIdx + 1, postIdx
 
     return None
 
 
 def intersectionRefactor(
-    schedule: List[int], dataLoader: DataLoader, value, prevPos: int, postPos: int
+    schedule: List[int], dataLoader: CityDataLoader, value, prevIdx: int, postIdx: int
 ) -> Tuple[List[int], float]:
     """the method to refactor schedule which contains intersection
 
     Args:
         schedule (List[int]): the current schedule
-        dataLoader (DataLoader): where you can query the data from
-        prevPos (int): previous key point position
-        postPos (int): post key point position
+        dataLoader (CityDataLoader): where you can query the data from
+        prevIdx (int): the index of previous key point
+        postIdx (int): the index of post key point
 
     Returns:
         Tuple[List[int], float]: new schedule and its value respectively
     """
 
     def calcDelta(
-        schedule: List[int], dataLoader: DataLoader, prevPos: int, postPos: int
+        schedule: List[int], dataLoader: CityDataLoader, prevPos: int, postPos: int
     ) -> float:
         prevIdx, postIdx = schedule.index(prevPos), schedule.index(postPos)
         delta = (
-            -np.linalg.norm(
-                np.array(
-                    [
-                        dataLoader[prevPos].x - dataLoader[schedule[prevIdx - 1]].x,
-                        dataLoader[prevPos].y - dataLoader[schedule[prevIdx - 1]].y,
-                    ]
-                )
-            )
-            - np.linalg.norm(
-                np.array(
-                    [
-                        dataLoader[postPos].x
-                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].x,
-                        dataLoader[postPos].y
-                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].y,
-                    ]
-                )
-            )
-            + np.linalg.norm(
-                np.array(
-                    [
-                        dataLoader[prevPos].x
-                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].x,
-                        dataLoader[prevPos].y
-                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].y,
-                    ]
-                )
-            )
-            + np.linalg.norm(
-                np.array(
-                    [
-                        dataLoader[postPos].x - dataLoader[schedule[prevIdx - 1]].x,
-                        dataLoader[postPos].y - dataLoader[schedule[prevIdx - 1]].y,
-                    ]
-                )
-            )
+            -dataLoader.distMat[prevPos, schedule[prevIdx - 1]]
+            - dataLoader.distMat[postPos, schedule[(postIdx + 1) % len(schedule)]]
+            + dataLoader.distMat[prevPos, schedule[(postIdx + 1) % len(schedule)]]
+            + dataLoader.distMat[postPos, schedule[prevIdx - 1]]
         )
         return delta
 
-    prevIdx, postIdx = schedule.index(prevPos), schedule.index(postPos)
-    value += calcDelta(schedule, dataLoader, prevPos, postPos)
+    value += calcDelta(schedule, dataLoader, schedule[prevIdx], schedule[postIdx])
     schedule[prevIdx : postIdx + 1] = reversed(schedule[prevIdx : postIdx + 1])
     return schedule, value
 
 
-def initSolution(dataLoader: DataLoader, distFunc: Callable):
+def initSolution(
+    dataLoader: CityDataLoader, distFunc: Callable
+) -> Tuple[Tuple[List[int], float]]:
+    """the method to initialize the solution
+
+    Args:
+        dataLoader (CityDataLoader): where you can query the data from
+        distFunc (Callable): the method to calc total value for solution
+
+    Returns:
+        Tuple[List[int], float]: the schedule and its value respectively
+
+    """
     schedule = []
     for cityId, cityGeoInfo in dataLoader:
         schedule.append(cityId)
@@ -179,7 +154,7 @@ def twoOpt(
     self: object,
     schedule: List[int],
     value: float,
-    dataLoader: DataLoader,
+    dataLoader: CityDataLoader,
     maximized: bool = False,
     initStatus: bool = False,
 ) -> Tuple[List[int], float]:
@@ -189,18 +164,22 @@ def twoOpt(
         self (object): the algorithm object to fetch necessary params
         schedule (List[int]): the current schedule
         value (float): the current value
-        dataLoader (DataLoader): where you can query the data from
+        dataLoader (CityDataLoader): where you can query the data from
         maximized (bool, optional): whether to maximize or minimize the target value. Defaults to False.
+        initStatus (bool, optional): whether the algorithm is run just started
 
     Returns:
         Tuple[List[int], float]: new schedule and its value respectively
     """
 
-    def calcDelta(schedule: List[int], prevPos: int, nextPos: int) -> float:
+    def calcDelta(
+        schedule: List[int], dataLoader: CityDataLoader, prevPos: int, nextPos: int
+    ) -> float:
         """calculate the delta value between schedule before and after
 
         Args:
             schedule (List[int]): the current schedule
+            dataLoader (CityDataLoader): where you can query the data from
             prevPos (int): the 2-opt fore-position
             nextPos (int): the 2-opt post-position
 
@@ -212,47 +191,17 @@ def twoOpt(
         if prevPos + nextPos + 1 == len(schedule):
             return 0
 
-        prevGeoInfo4i = dataLoader[
-            schedule[(prevPos + len(schedule) - 1) % len(schedule)]
-        ]
-        currGeoInfo4i = dataLoader[schedule[prevPos]]
-
-        currGeoInfo4j = dataLoader[schedule[nextPos]]
-        nextGeoInfo4j = dataLoader[schedule[(nextPos + 1) % len(schedule)]]
-
         delta = (
-            np.linalg.norm(
-                np.array(
-                    [
-                        prevGeoInfo4i.x - currGeoInfo4j.x,
-                        prevGeoInfo4i.y - currGeoInfo4j.y,
-                    ]
-                )
-            )
-            + np.linalg.norm(
-                np.array(
-                    [
-                        nextGeoInfo4j.x - currGeoInfo4i.x,
-                        nextGeoInfo4j.y - currGeoInfo4i.y,
-                    ]
-                )
-            )
-            - np.linalg.norm(
-                np.array(
-                    [
-                        prevGeoInfo4i.x - currGeoInfo4i.x,
-                        prevGeoInfo4i.y - currGeoInfo4i.y,
-                    ]
-                )
-            )
-            - np.linalg.norm(
-                np.array(
-                    [
-                        nextGeoInfo4j.x - currGeoInfo4j.x,
-                        nextGeoInfo4j.y - currGeoInfo4j.y,
-                    ]
-                )
-            )
+            dataLoader.distMat[
+                schedule[(prevPos - 1) % len(schedule)], schedule[nextPos]
+            ]
+            + dataLoader.distMat[
+                schedule[(nextPos + 1) % len(schedule)], schedule[prevPos]
+            ]
+            - dataLoader.distMat[schedule[prevPos - 1], schedule[prevPos]]
+            - dataLoader.distMat[
+                schedule[(nextPos + 1) % len(schedule)], schedule[nextPos]
+            ]
         )
         return delta
 
@@ -312,7 +261,7 @@ def twoOpt(
             f"Methods only include 'random', 'best' and 'mixed'. Method {method} is not existed"
         )
 
-    value += calcDelta(schedule, swapIdx1, swapIdx2)
+    value += calcDelta(schedule, dataLoader, swapIdx1, swapIdx2)
     for delta in range((swapIdx2 - swapIdx1) // 2 + 1):
         newSchedule[swapIdx1 + delta], newSchedule[swapIdx2 - delta] = (
             newSchedule[swapIdx2 - delta],
@@ -323,9 +272,9 @@ def twoOpt(
         analysisResult = intersectionAnalysis(newSchedule, dataLoader)
         if analysisResult is None:
             break
-        prevPos, postPos = analysisResult
+        prevIdx, postIdx = analysisResult
         newSchedule, value = intersectionRefactor(
-            newSchedule, dataLoader, value, prevPos, postPos
+            newSchedule, dataLoader, value, prevIdx, postIdx
         )
 
     return newSchedule, value
@@ -335,140 +284,71 @@ def swap(
     self: object,
     schedule: List[int],
     value: float,
-    dataLoader: DataLoader,
+    dataLoader: CityDataLoader,
     maximized: bool = False,
     initStatus: bool = False,
 ) -> Tuple[List[int], float]:
-    def calcSwapDelta(schedule, dataLoader, prevIdx, postIdx):
+    """the swap method to generate new schedule
+
+    Args:
+        self (object): the algorithm object to fetch necessary params
+        schedule (List[int]): the current schedule
+        value (float): the current value
+        dataLoader (CityDataLoader): where you can query the data from
+        maximized (bool, optional): whether to maximize or minimize the target value. Defaults to False.
+        initStatus (bool, optional): whether the algorithm is run just started
+
+    Returns:
+        Tuple[List[int], float]: new schedule and its value respectively
+    """
+
+    def calcSwapDelta(
+        schedule: List[int], dataLoader: CityDataLoader, prevIdx: int, postIdx: int
+    ) -> float:
+        """calculate the delta value between schedule before and after
+
+        Args:
+            schedule (List[int]): [description]
+            dataLoader (CityDataLoader): [description]
+            prevIdx (int): the index for prev-position
+            postIdx (int): the index for post-position
+
+        Returns:
+            float: the delta value
+        """
         prevIdx, postIdx = sorted([prevIdx, postIdx])
         delta = (
-            -np.linalg.norm(
-                np.array(
-                    [
-                        dataLoader[schedule[prevIdx]].x
-                        - dataLoader[schedule[prevIdx - 1]].x,
-                        dataLoader[schedule[prevIdx]].y
-                        - dataLoader[schedule[prevIdx - 1]].y,
-                    ]
-                )
-            )
-            - np.linalg.norm(
-                np.array(
-                    [
-                        dataLoader[schedule[postIdx]].x
-                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].x,
-                        dataLoader[schedule[postIdx]].y
-                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].y,
-                    ]
-                )
-            )
-            + np.linalg.norm(
-                np.array(
-                    [
-                        dataLoader[schedule[prevIdx]].x
-                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].x,
-                        dataLoader[schedule[prevIdx]].y
-                        - dataLoader[schedule[(postIdx + 1) % len(schedule)]].y,
-                    ]
-                )
-            )
-            + np.linalg.norm(
-                np.array(
-                    [
-                        dataLoader[schedule[postIdx]].x
-                        - dataLoader[schedule[prevIdx - 1]].x,
-                        dataLoader[schedule[postIdx]].y
-                        - dataLoader[schedule[prevIdx - 1]].y,
-                    ]
-                )
-            )
+            -dataLoader.distMat[schedule[prevIdx], schedule[prevIdx - 1]]
+            - dataLoader.distMat[
+                schedule[postIdx], schedule[(postIdx + 1) % len(schedule)]
+            ]
+            + dataLoader.distMat[
+                schedule[prevIdx], schedule[(postIdx + 1) % len(schedule)]
+            ]
+            + dataLoader.distMat[schedule[postIdx], schedule[prevIdx - 1]]
         )
 
         if prevIdx == 0 and postIdx == len(dataLoader) - 1:
             delta = (
-                -np.linalg.norm(
-                    np.array(
-                        [
-                            dataLoader[schedule[prevIdx]].x
-                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].x,
-                            dataLoader[schedule[prevIdx]].y
-                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].y,
-                        ]
-                    )
-                )
-                - np.linalg.norm(
-                    np.array(
-                        [
-                            dataLoader[schedule[postIdx]].x
-                            - dataLoader[schedule[postIdx - 1]].x,
-                            dataLoader[schedule[postIdx]].y
-                            - dataLoader[schedule[postIdx - 1]].y,
-                        ]
-                    )
-                )
-                + np.linalg.norm(
-                    np.array(
-                        [
-                            dataLoader[schedule[prevIdx]].x
-                            - dataLoader[schedule[postIdx - 1]].x,
-                            dataLoader[schedule[prevIdx]].y
-                            - dataLoader[schedule[postIdx - 1]].y,
-                        ]
-                    )
-                )
-                + np.linalg.norm(
-                    np.array(
-                        [
-                            dataLoader[schedule[postIdx]].x
-                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].x,
-                            dataLoader[schedule[postIdx]].y
-                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].y,
-                        ]
-                    )
-                )
+                -dataLoader.distMat[
+                    schedule[prevIdx], schedule[(prevIdx + 1) % len(schedule)]
+                ]
+                - dataLoader.distMat[schedule[postIdx], schedule[postIdx - 1]]
+                + dataLoader.distMat[schedule[prevIdx], schedule[postIdx - 1]]
+                + dataLoader.distMat[
+                    schedule[postIdx], schedule[(prevIdx + 1) % len(schedule)]
+                ]
             )
         elif not (abs(prevIdx - postIdx) <= 1):
             delta += (
-                -np.linalg.norm(
-                    np.array(
-                        [
-                            dataLoader[schedule[prevIdx]].x
-                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].x,
-                            dataLoader[schedule[prevIdx]].y
-                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].y,
-                        ]
-                    )
-                )
-                - np.linalg.norm(
-                    np.array(
-                        [
-                            dataLoader[schedule[postIdx]].x
-                            - dataLoader[schedule[postIdx - 1]].x,
-                            dataLoader[schedule[postIdx]].y
-                            - dataLoader[schedule[postIdx - 1]].y,
-                        ]
-                    )
-                )
-                + np.linalg.norm(
-                    np.array(
-                        [
-                            dataLoader[schedule[prevIdx]].x
-                            - dataLoader[schedule[postIdx - 1]].x,
-                            dataLoader[schedule[prevIdx]].y
-                            - dataLoader[schedule[postIdx - 1]].y,
-                        ]
-                    )
-                )
-                + np.linalg.norm(
-                    np.array(
-                        [
-                            dataLoader[schedule[postIdx]].x
-                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].x,
-                            dataLoader[schedule[postIdx]].y
-                            - dataLoader[schedule[(prevIdx + 1) % len(schedule)]].y,
-                        ]
-                    )
-                )
+                -dataLoader.distMat[
+                    schedule[prevIdx], schedule[(prevIdx + 1) % len(schedule)]
+                ]
+                - dataLoader.distMat[schedule[postIdx], schedule[postIdx - 1]]
+                + dataLoader.distMat[schedule[prevIdx], schedule[postIdx - 1]]
+                + dataLoader.distMat[
+                    schedule[postIdx], schedule[(prevIdx + 1) % len(schedule)]
+                ]
             )
 
         return delta
@@ -492,9 +372,9 @@ def swap(
         analysisResult = intersectionAnalysis(schedule, dataLoader)
         if analysisResult is None:
             break
-        prevPos, postPos = analysisResult
+        prevIdx, postIdx = analysisResult
         schedule, value = intersectionRefactor(
-            schedule, dataLoader, value, prevPos, postPos
+            schedule, dataLoader, value, prevIdx, postIdx
         )
 
     return schedule, value
