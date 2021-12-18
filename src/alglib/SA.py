@@ -122,10 +122,16 @@ class SimulatedAnnealing(Base):
             tbar.set_description_str(f"Current Temperate: {temperate:.6f}")
             for epoch in tbar:
                 schedule, value = fetchNewSchedule(
-                    self, self.localSchedule, self.localValue, dataLoader, initStatus=(epoch / epochNum) < self.params.initStatusJudgement
+                    self,
+                    self.localSchedule,
+                    self.localValue,
+                    dataLoader,
+                    initStatus=(epoch / epochNum) < self.params.initStatusJudgement,
                 )
 
-                updateLocalSchedule(schedule, value, temperate, maximize=self.params.maximize)
+                updateLocalSchedule(
+                    schedule, value, temperate, maximize=self.params.maximize
+                )
                 updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
 
             temperate *= coolRate
@@ -149,7 +155,8 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
 
     def run(
         self,
-        dataLoader: DataLoader, initSchedule: Callable = initSolution,
+        dataLoader: DataLoader,
+        initSchedule: Callable = initSolution,
         calcValue: Callable = distFunc,
         fetchNewSchedule: Callable = twoOpt,
     ) -> None:
@@ -215,7 +222,9 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
         # init the first route or schedule
         schedule, value = initSchedule(dataLoader, calcValue)
 
-        updateLocalSchedule(schedule, value, minTemperate, maximize=self.params.maximize)
+        updateLocalSchedule(
+            schedule, value, minTemperate, maximize=self.params.maximize
+        )
         updateGlobalSchedule(schedule, value, maximize=self.params.maximize)
 
         # solve
@@ -225,8 +234,14 @@ class AdaptiveSimulatedAnnealing(SimulatedAnnealing):
             tbar.set_description_str(f"Current Temperate: {temperate:.6f}")
 
             schedule, value = fetchNewSchedule(
-                self, self.localSchedule, self.localValue, dataLoader, initStatus=(epoch / epochNum) < self.params.initStatusJudgement
+                self,
+                self.localSchedule,
+                self.localValue,
+                dataLoader,
+                initStatus=(epoch / epochNum) < self.params.initStatusJudgement,
             )
 
-            updateLocalSchedule(schedule, value, temperate, maximize=self.params.maximize)
+            updateLocalSchedule(
+                schedule, value, temperate, maximize=self.params.maximize
+            )
             updateGlobalSchedule(schedule, value, maximize=self.params.maximize)

@@ -42,7 +42,7 @@ class ParticleSwarmOptimization(Base):
         dataLoader: DataLoader,
         initSchedule: Callable = initSolution,
         calcValue: Callable = distFunc,
-        fetchNewSchedule: Callable = swap
+        fetchNewSchedule: Callable = swap,
     ) -> None:
         """the main procedure for PSO
 
@@ -82,9 +82,7 @@ class ParticleSwarmOptimization(Base):
             self.particles[particleIdx].extend(schedule)
             self.particleValues[particleIdx] = value
 
-        def updateLocalSchedule(
-            maximize: bool = False,
-        ) -> None:
+        def updateLocalSchedule(maximize: bool = False,) -> None:
             """the method to update particle
 
             Args:
@@ -98,9 +96,7 @@ class ParticleSwarmOptimization(Base):
                 self.localSchedule.extend(schedule)
                 self.localValue = value
 
-        def updateGlobalSchedule(
-            maximize: bool = False
-        ) -> None:
+        def updateGlobalSchedule(maximize: bool = False) -> None:
             """the method to update global schedule
 
             Args:
@@ -125,9 +121,15 @@ class ParticleSwarmOptimization(Base):
         updateGlobalSchedule(maximize=self.params.maximize)
 
         for epoch in tqdm(range(epochNum)):
-            for idx, (particle, particleValue) in enumerate(zip(self.particles, self.particleValues)):
+            for idx, (particle, particleValue) in enumerate(
+                zip(self.particles, self.particleValues)
+            ):
                 schedule, value = fetchNewSchedule(
-                    self, particle, particleValue, dataLoader, initStatus=(epoch / epochNum) < self.params.initStatusJudgement
+                    self,
+                    particle,
+                    particleValue,
+                    dataLoader,
+                    initStatus=(epoch / epochNum) < self.params.initStatusJudgement,
                 )
                 updateParticle(
                     idx, schedule, value, maximize=self.params.maximize, force=True
