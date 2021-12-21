@@ -234,7 +234,7 @@ def twoOpt(
                 if i + j + 1 == len(schedule):
                     continue
 
-                currDelta = calcDelta(schedule, i, j)
+                currDelta = calcDelta(schedule, dataLoader,  i, j)
 
                 currDelta *= 1 if maximized else -1
                 if currDelta > delta:
@@ -252,7 +252,7 @@ def twoOpt(
         swapIdx1, swapIdx2 = getIdxViaBest()
     elif method == "mixed":
         swapIdx1, swapIdx2 = getIdxViaBest()
-        delta = calcDelta(schedule, swapIdx1, swapIdx2)
+        delta = calcDelta(schedule, dataLoader, swapIdx1, swapIdx2)
         delta *= 1 if maximized else -1
         if delta <= 0:
             swapIdx1, swapIdx2 = getIdxViaRandom()
