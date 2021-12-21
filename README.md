@@ -6,7 +6,7 @@
 
 the algorithms in [another project](https://github.com/ZhuYing-CSU/Some_VRP_Algorithms) may be transferred to here.
 
-## Implement
+## Implementation
 
 - [x] Simulated Annealing Algorithm
 - [x] Adaptive (temperate) Simulated Annealing Algorithm
