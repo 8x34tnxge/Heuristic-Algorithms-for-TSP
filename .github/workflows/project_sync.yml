@@ -1,0 +1,12 @@
+- name: Todoist Github Action
+  # You may pin to the exact commit or the version.
+  # uses: cobraz/todoist-action@ec561b33c768f2980fbe0b2dcdb1be3fb74403a5
+  uses: cobraz/todoist-action@v1.0.1
+  with:
+    # Github Token (cannot be default token)
+    github-token: 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
+    # You can retrieve this from Todoist / Settings
+    todoist-token: ecdd24dd384b425257064337bb86f226ac295fa4
+    # Github Search Query, e.g 'is: issue'
+    query: 
+      type:pr type:issue
