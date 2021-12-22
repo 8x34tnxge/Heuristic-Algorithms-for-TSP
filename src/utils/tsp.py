@@ -378,3 +378,159 @@ def swap(
         )
 
     return schedule, value
+
+
+def crossover(
+    self: object,
+    chroms: List[Tuple[List[int], float]],
+    calcValue: Callable,
+    dataLoader: CityDataLoader,
+) -> Tuple[List[int], float]:
+    """[summary]
+
+    Args:
+        self (object): [description]
+        chroms (List[Tuple[List[int], float]]): [description]
+        calcValue (Callable): [description]
+        dataLoader (CityDataLoader): [description]
+
+    Returns:
+        Tuple[List[int], float]: [description]
+    """
+    # init params
+    chroms.sort(key=lambda x: x[-1], reverse=self.params.maximize)
+    fitnesses = [
+        value if self.params.maximize else 1 / value for schedule, value in chroms
+    ]
+
+    # choose two chromosomes to crossover
+    chosenChromo = []
+    while len(chosenChromo) < 2:
+        probPtr = random.random() * sum(fitnesses)
+        for idx, fitness in enumerate(fitnesses):
+            if fitness > probPtr and idx not in chosenChromo:
+                chosenChromo.append(idx)
+                break
+            probPtr -= fitness
+
+    ###########################################################
+    # generate & return new schedule and its value respectively
+    ###########################################################
+    tmp = {}
+    schedule = [None for _ in chroms[chosenChromo[0]][0]]
+
+    startIdx = random.randint(0, len(chroms[0][0]) - 2)
+    endIdx = random.randint(startIdx + 1, len(chroms[0][0]) - 1)
+
+    # check and pair the cityId which is not include in the other sequence [startIdx -> endIdx]
+    firstVacancy = []
+    secondVacancy = []
+    for idx in range(startIdx, endIdx + 1):
+        firstCityId = chroms[chosenChromo[0]][0][idx]
+        if firstCityId not in chroms[chosenChromo[1]][0][startIdx : endIdx + 1]:
+            firstVacancy.append(firstCityId)
+
+        secondCityId = chroms[chosenChromo[1]][0][idx]
+        if secondCityId not in chroms[chosenChromo[0]][0][startIdx : endIdx + 1]:
+            secondVacancy.append(secondCityId)
+
+    for key, value in zip(secondVacancy, firstVacancy):
+        tmp[key] = value
+
+    # generate new schedule and its value
+
+    for idx in range(startIdx, endIdx + 1):
+        schedule[idx] = chroms[chosenChromo[1]][0][idx]
+
+    for idx in range(len(chroms[0][0])):
+        if startIdx <= idx <= endIdx:
+            continue
+
+        cityId = chroms[chosenChromo[0]][0][idx]
+        if cityId in schedule:
+            schedule[idx] = tmp[chroms[chosenChromo[0]][0][idx]]
+        else:
+            schedule[idx] = chroms[chosenChromo[0]][0][idx]
+
+    value = calcValue(schedule, dataLoader)
+
+    return schedule, value
+
+
+def mutate(
+    self: object,
+    schedule: List[int],
+    value: float,
+    dataLoader: CityDataLoader,
+) -> Tuple[List[int], float]:
+    """[summary]
+
+    Args:
+        self (object): [description]
+        schedule (List[int]): [description]
+        value (float): [description]
+        dataLoader (CityDataLoader): [description]
+
+    Returns:
+        Tuple[List[int], float]: [description]
+    """
+
+    def calcDelta(
+        schedule: List[int], dataLoader: CityDataLoader, prevIdx: int, postIdx: int
+    ) -> float:
+        """calculate the delta value between schedule before and after
+
+        Args:
+            schedule (List[int]): [description]
+            dataLoader (CityDataLoader): [description]
+            prevIdx (int): the index for prev-position
+            postIdx (int): the index for post-position
+
+        Returns:
+            float: the delta value
+        """
+        prevIdx, postIdx = sorted([prevIdx, postIdx])
+        delta = (
+            -dataLoader.distMat[schedule[prevIdx], schedule[prevIdx - 1]]
+            - dataLoader.distMat[
+                schedule[postIdx], schedule[(postIdx + 1) % len(schedule)]
+            ]
+            + dataLoader.distMat[
+                schedule[prevIdx], schedule[(postIdx + 1) % len(schedule)]
+            ]
+            + dataLoader.distMat[schedule[postIdx], schedule[prevIdx - 1]]
+        )
+
+        if prevIdx == 0 and postIdx == len(dataLoader) - 1:
+            delta = (
+                -dataLoader.distMat[
+                    schedule[prevIdx], schedule[(prevIdx + 1) % len(schedule)]
+                ]
+                - dataLoader.distMat[schedule[postIdx], schedule[postIdx - 1]]
+                + dataLoader.distMat[schedule[prevIdx], schedule[postIdx - 1]]
+                + dataLoader.distMat[
+                    schedule[postIdx], schedule[(prevIdx + 1) % len(schedule)]
+                ]
+            )
+        elif not (abs(prevIdx - postIdx) <= 1):
+            delta += (
+                -dataLoader.distMat[
+                    schedule[prevIdx], schedule[(prevIdx + 1) % len(schedule)]
+                ]
+                - dataLoader.distMat[schedule[postIdx], schedule[postIdx - 1]]
+                + dataLoader.distMat[schedule[prevIdx], schedule[postIdx - 1]]
+                + dataLoader.distMat[
+                    schedule[postIdx], schedule[(prevIdx + 1) % len(schedule)]
+                ]
+            )
+
+        return delta
+
+    if random.random() < self.params.mutateProb:
+        prevIdx = random.randint(0, len(schedule) - 2)
+        postIdx = random.randint(prevIdx + 1, len(schedule) - 1)
+        value += calcDelta(schedule, dataLoader, prevIdx, postIdx)
+        schedule[prevIdx], schedule[postIdx] = schedule[prevIdx], schedule[postIdx]
+
+    return schedule, value
+

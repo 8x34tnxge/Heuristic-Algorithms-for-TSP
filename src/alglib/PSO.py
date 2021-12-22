@@ -15,7 +15,7 @@ class ParticleSwarmOptimization(Base):
     """
 
     def __init__(self, params: PSO_Param) -> None:
-        """initialize SA algorithm
+        """initialize GA algorithm
 
         Args:
             params (PSO_Param): the parameter object for Particle Swarm Optimization algorithm

@@ -14,7 +14,7 @@ class VariableNeighborhoodSearch(Base):
     """
 
     def __init__(self, params: VNS_Param) -> None:
-        """initialize SA algorithm
+        """initialize VNS algorithm
 
         Args:
             params (VNS_Param): the parameter object for Variable Neighborhood Search algorithm

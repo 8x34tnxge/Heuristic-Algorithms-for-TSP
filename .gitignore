@@ -5,6 +5,7 @@
 *.csv
 *.zip
 *.sh
+*.log
 
 # the directory to be ignored
 __pycache__
