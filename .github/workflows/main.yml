@@ -1,0 +1,37 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Synchronize Todoist
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  schedule:
+   - cron: "*/3 * * * *"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+sync_issues:
+    name: Synchronize // ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: Issues
+            query: updated:>2021-04-01 archived:false sort:updated-desc assignee:cobraz -label:backlog
+            key: generic
+          - name: Pull Requests
+            query: is:pr updated:>2021-04-01 archived:false sort:updated-desc review-requested:cobraz -label:backlog
+            key: pr
+      fail-fast: false
+    steps:
+      - name: Sync issues
+        if: always()
+        id: sync
+        uses: cobraz/todoist-action@v1.0.1
+        with:
+          github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          todoist-token: ${{ secrets.TODOIST_TOKEN }}
+          query: ${{ matrix.query }}
