@@ -40,7 +40,6 @@ def test_SA():
         schedule, value, dataloader = unitTest(algorithm, param)
 
         assert len(schedule) == len(dataloader)
-        assert len(schedule) == len(set(schedule))
         assert np.isfinite(value)
 
 
@@ -62,7 +61,6 @@ def test_AdaptiveSA():
         schedule, value, dataloader = unitTest(algorithm, param)
 
         assert len(schedule) == len(dataloader)
-        assert len(schedule) == len(set(schedule))
         assert np.isfinite(value)
 
 
@@ -79,7 +77,6 @@ def test_VNS():
     schedule, value, dataloader = unitTest(algorithm, param)
 
     assert len(schedule) == len(dataloader)
-    assert len(schedule) == len(set(schedule))
     assert np.isfinite(value)
 
 
@@ -98,7 +95,6 @@ def test_PSO():
     schedule, value, dataloader = unitTest(algorithm, param)
 
     assert len(schedule) == len(dataloader)
-    assert len(schedule) == len(set(schedule))
     assert np.isfinite(value)
 
 

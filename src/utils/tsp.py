@@ -234,7 +234,7 @@ def twoOpt(
                 if i + j + 1 == len(schedule):
                     continue
 
-                currDelta = calcDelta(schedule, dataLoader, i, j)
+                currDelta = calcDelta(schedule, dataLoader,  i, j)
 
                 currDelta *= 1 if maximized else -1
                 if currDelta > delta:
@@ -533,3 +533,4 @@ def mutate(
         schedule[prevIdx], schedule[postIdx] = schedule[prevIdx], schedule[postIdx]
 
     return schedule, value
+
