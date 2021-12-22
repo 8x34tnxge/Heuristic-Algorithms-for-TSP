@@ -15,7 +15,6 @@ pytest = "*"
 black = "*"
 loguru = "*"
 
-
 [requires]
 python_version = "3.7"
 
