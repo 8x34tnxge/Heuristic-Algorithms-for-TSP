@@ -1,23 +1,18 @@
 from dataclasses import dataclass
 from typing import Callable
+
 import numpy as np
-from src.alglib import PSO, SA, VNS, AdaptiveSA
-from src.alglib.param import AdaptiveSA_Param, PSO_Param, SA_Param, VNS_Param
-from src.config import getConfig
-from src.utils import CityDataLoader
-from src.utils.tsp import twoOpt
+from alglib import GA, PSO, SA, VNS, AdaptiveSA
+from alglib.param import AdaptiveSA_Param, GA_Param, PSO_Param, SA_Param, VNS_Param
+from config import getConfig
+from utils import CityDataLoader
+from utils.tsp import twoOpt
 
 
-<<<<<<< HEAD
-=======
 def test_GA():
     algorithm = GA
     param = GA_Param(
-        popNum = 30,
-        newPopRate=0.7,
-        mutateProb=0.3,
-        epochNum=30,
-        maximize=False
+        popNum=30, newPopRate=0.7, mutateProb=0.3, epochNum=30, maximize=False
     )
 
     schedule, value, dataloader = unitTest(algorithm, param)
@@ -26,7 +21,7 @@ def test_GA():
     assert len(schedule) == len(set(schedule))
     assert np.isfinite(value)
 
->>>>>>> c72d14e (add GA module)
+
 def test_SA():
     methods = ["random", "best", "mixed"]
     for method in methods:
@@ -39,7 +34,7 @@ def test_SA():
             method=method,
             maximize=False,
             doIntersectAnalysis=False,
-            initStatusJudgement = 2 / 3,
+            initStatusJudgement=2 / 3,
         )
 
         schedule, value, dataloader = unitTest(algorithm, param)
@@ -47,6 +42,7 @@ def test_SA():
         assert len(schedule) == len(dataloader)
         assert len(schedule) == len(set(schedule))
         assert np.isfinite(value)
+
 
 def test_AdaptiveSA():
     methods = ["random", "best", "mixed"]
@@ -60,7 +56,7 @@ def test_AdaptiveSA():
             method=method,
             maximize=False,
             doIntersectAnalysis=False,
-            initStatusJudgement = 2 / 3,
+            initStatusJudgement=2 / 3,
         )
 
         schedule, value, dataloader = unitTest(algorithm, param)
@@ -69,14 +65,15 @@ def test_AdaptiveSA():
         assert len(schedule) == len(set(schedule))
         assert np.isfinite(value)
 
+
 def test_VNS():
     algorithm = VNS
     param = VNS_Param(
         epochNum=1000,
         methods=[twoOpt, twoOpt],
         maximize=False,
-        doIntersectAnalysis = True,
-        initStatusJudgement = 2 / 3,
+        doIntersectAnalysis=True,
+        initStatusJudgement=2 / 3,
     )
 
     schedule, value, dataloader = unitTest(algorithm, param)
@@ -84,17 +81,18 @@ def test_VNS():
     assert len(schedule) == len(dataloader)
     assert len(schedule) == len(set(schedule))
     assert np.isfinite(value)
+
 
 def test_PSO():
     algorithm = PSO
     param = PSO_Param(
-        alpha = 0.5,
-        beta = 0.7,
-        particleNum = 75,
-        epochNum = 200,
-        maximize = False,
-        doIntersectAnalysis = True,
-        initStatusJudgement = 2 / 3,
+        alpha=0.5,
+        beta=0.7,
+        particleNum=75,
+        epochNum=200,
+        maximize=False,
+        doIntersectAnalysis=True,
+        initStatusJudgement=2 / 3,
     )
 
     schedule, value, dataloader = unitTest(algorithm, param)
@@ -102,6 +100,7 @@ def test_PSO():
     assert len(schedule) == len(dataloader)
     assert len(schedule) == len(set(schedule))
     assert np.isfinite(value)
+
 
 def unitTest(algorithm: Callable, parameters: dataclass):
     config = getConfig()

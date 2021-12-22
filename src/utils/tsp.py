@@ -378,8 +378,6 @@ def swap(
         )
 
     return schedule, value
-<<<<<<< HEAD
-=======
 
 
 def crossover(
@@ -535,4 +533,3 @@ def mutate(
         schedule[prevIdx], schedule[postIdx] = schedule[prevIdx], schedule[postIdx]
 
     return schedule, value
->>>>>>> c72d14e (add GA module)

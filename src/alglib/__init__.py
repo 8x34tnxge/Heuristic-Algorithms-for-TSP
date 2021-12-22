@@ -2,8 +2,11 @@
 from alglib.SA import SimulatedAnnealing as SA
 from alglib.SA import AdaptiveSimulatedAnnealing as AdaptiveSA
 
-# import & rename SA parameters
+# import & rename VNS parameters
 from alglib.VNS import VariableNeighborhoodSearch as VNS
 
-# import & rename SA parameters
+# import & rename PSO parameters
 from alglib.PSO import ParticleSwarmOptimization as PSO
+
+# import & rename GA parameters
+from alglib.GA import GeneticAlgorithm as GA

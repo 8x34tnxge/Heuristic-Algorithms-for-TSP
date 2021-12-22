@@ -13,10 +13,18 @@ yacs = "==0.1.8"
 [dev-packages]
 pytest = "*"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 black = "*"
 loguru = "*"
 >>>>>>> c72d14e (add GA module)
+=======
+black = "*"
+loguru = "*"
+>>>>>>> alg
 
 [requires]
 python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
