@@ -13,6 +13,5 @@ the algorithms in [another project](https://github.com/ZhuYing-CSU/Some_VRP_Algo
 - [x] Adaptive (temperate) Simulated Annealing Algorithm
 - [x] Variable Neighborhood Search Algorithm
 - [ ] Tabu Search Algorithm
-- [x] Genetic Algorithm
+- [ ] Genetic Algorithm
 - [x] Particle Swarm Optimization Algorithm
-- [ ] Ant Colony Algorithm
