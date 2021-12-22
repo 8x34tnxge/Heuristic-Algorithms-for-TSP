@@ -4,6 +4,7 @@
 *.png
 *.csv
 *.zip
+*.sh
 
 # the directory to be ignored
 __pycache__
