@@ -8,25 +8,6 @@ from src.utils import CityDataLoader
 from src.utils.tsp import twoOpt
 
 
-<<<<<<< HEAD
-=======
-def test_GA():
-    algorithm = GA
-    param = GA_Param(
-        popNum = 30,
-        newPopRate=0.7,
-        mutateProb=0.3,
-        epochNum=30,
-        maximize=False
-    )
-
-    schedule, value, dataloader = unitTest(algorithm, param)
-
-    assert len(schedule) == len(dataloader)
-    assert len(schedule) == len(set(schedule))
-    assert np.isfinite(value)
-
->>>>>>> c72d14e (add GA module)
 def test_SA():
     methods = ["random", "best", "mixed"]
     for method in methods:
@@ -45,7 +26,6 @@ def test_SA():
         schedule, value, dataloader = unitTest(algorithm, param)
 
         assert len(schedule) == len(dataloader)
-        assert len(schedule) == len(set(schedule))
         assert np.isfinite(value)
 
 def test_AdaptiveSA():
@@ -66,7 +46,6 @@ def test_AdaptiveSA():
         schedule, value, dataloader = unitTest(algorithm, param)
 
         assert len(schedule) == len(dataloader)
-        assert len(schedule) == len(set(schedule))
         assert np.isfinite(value)
 
 def test_VNS():
@@ -82,7 +61,6 @@ def test_VNS():
     schedule, value, dataloader = unitTest(algorithm, param)
 
     assert len(schedule) == len(dataloader)
-    assert len(schedule) == len(set(schedule))
     assert np.isfinite(value)
 
 def test_PSO():
@@ -100,7 +78,6 @@ def test_PSO():
     schedule, value, dataloader = unitTest(algorithm, param)
 
     assert len(schedule) == len(dataloader)
-    assert len(schedule) == len(set(schedule))
     assert np.isfinite(value)
 
 def unitTest(algorithm: Callable, parameters: dataclass):
